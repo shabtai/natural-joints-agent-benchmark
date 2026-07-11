@@ -103,6 +103,15 @@
   .rule ul{margin:.2em 0 0;padding-left:18px} .rule li{font-size:13.5px;margin:.3em 0;color:var(--muted)}
   .rule li b{color:var(--ink)}
 
+  .fail{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 17px;margin:14px 0}
+  .fh{font-weight:700;font-size:15px;margin-bottom:9px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .codeblock{background:var(--raised);border:1px solid var(--border);border-radius:9px;padding:12px 14px;overflow-x:auto}
+  .codeblock pre{margin:0;font-family:var(--font-mono);font-size:12.5px;line-height:1.65;white-space:pre;color:var(--ink)}
+  .codeblock .cm{color:var(--faint)}
+  .bugline{color:var(--break);font-weight:700}
+  .fixline{color:var(--pass);font-weight:700}
+  .faildesc{font-size:13.5px;color:var(--muted);margin:9px 0 0}
+  .faildesc b{color:var(--ink)}
   hr{border:none;border-top:1px solid var(--border);margin:2.6em 0}
   footer{color:var(--muted);font-size:13px;margin-top:3em}
   footer a{font-weight:600}
@@ -254,7 +263,55 @@
     </tbody>
   </table></div>
 
-  <h2><span class="num">06</span>How the test works</h2>
+  <h2><span class="num">06</span>The failures, in code</h2>
+  <p class="sub">The actual lines the agents generated. Almost every failure is a single filter clause &mdash; missing, wrong, or hallucinated.</p>
+
+  <div class="fail">
+    <div class="fh"><span class="tag brk">the missing filter</span> E2 &amp; H1 &mdash; the moat, unfixable by scale</div>
+    <div class="codeblock"><pre><span class="cm"># CellVoyager AND Biomni, on BOTH 2.5-pro and 3.1-pro, all wrote:</span>
+ck = adlbc[(adlbc['PARAMCD']=='CK') &amp; (adlbc['AVISIT']=='Week 24')]
+ck.groupby('TRTP')['CHG'].mean()          <span class="bugline"># -> Placebo 32.63   WRONG</span>
+<span class="fixline"># needed:  &amp; (adlbc['ANL01FL']=='Y')     -> Placebo 159.75</span></pre></div>
+    <p class="faildesc">The analysis-record filter is absent in <b>all four</b> agent&times;model runs, and no plan ever mentions <span class="mono">ANL01FL</span>. The all-records mean is diluted by non-analysis duplicate rows, erasing a ~5&times; placebo CK elevation.</p>
+  </div>
+
+  <div class="fail">
+    <div class="fh"><span class="tag pass">the one-line fix</span> D1 &mdash; what the stronger model added</div>
+    <div class="codeblock"><pre><span class="cm"># Biomni 2.5-pro: applied ANL01FL but NOT the efficacy population -></span>
+df[df['ANL01FL']=='Y'] ... ['PARAMCD']=='ACTOT' ... 'Week 24'
+    .groupby('TRTP')['CHG'].mean()        <span class="bugline"># -> 2.34   WRONG</span>
+
+<span class="cm"># Biomni 3.1-pro: added ONE clause -></span>
+df[(df['PARAMCD']=='ACTOT') &amp; (df['AVISIT']=='Week 24')
+   &amp; (df['ANL01FL']=='Y') <span class="fixline">&amp; (df['EFFFL']=='Y')</span>]     <span class="fixline"># -> 2.545  RIGHT</span></pre></div>
+    <p class="faildesc">Here the fix is literally one filter clause. The phrase "primary efficacy analysis" cued the strong model to add <span class="mono">EFFFL=='Y'</span> (and it inspected <span class="mono">.unique()</span> first). E2 has no such cue &mdash; so the same model never adds the flag.</p>
+  </div>
+
+  <div class="fail">
+    <div class="fh"><span class="tag brk">the wrong flag</span> C6 &mdash; completion (CellVoyager)</div>
+    <div class="codeblock"><pre>completed = df[df['COMP24FL']=='Y'].shape[0]   <span class="bugline"># -> 118 (46.5%)  the TRAP flag</span>
+<span class="fixline"># authoritative:  df[df['EOSSTT']=='COMPLETED']  -> 110 (43.3%)</span></pre></div>
+    <p class="faildesc">Two flags disagree: <span class="mono">COMP24FL</span> ("completed the Week-24 visit", 118) vs <span class="mono">EOSSTT=COMPLETED</span> (study completion, 110). The strong model also plans <span class="mono">COMP24FL</span> &mdash; it doesn't know which is canonical.</p>
+  </div>
+
+  <div class="fail">
+    <div class="fh"><span class="tag brk">the hallucinated field</span> D3n &mdash; baseline (CellVoyager)</div>
+    <div class="codeblock"><pre>base = adas[(adas['PARAMCD']=='<span class="bugline">ADAST</span>') &amp; (adas['ABLFL']=='Y')]
+<span class="bugline"># PARAMCD 'ADAST' does not exist -> 0 rows -> no answer</span>
+<span class="fixline"># the total-score code is 'ACTOT' (ABLFL was already correct) -> 23.73</span></pre></div>
+    <p class="faildesc">It got the baseline <i>flag</i> right (<span class="mono">ABLFL=='Y'</span>) but invented the parameter code. One hallucinated token emptied the result. Biomni used <span class="mono">'ACTOT'</span> and passed.</p>
+  </div>
+
+  <div class="fail">
+    <div class="fh"><span class="tag brk">the unverified value string</span> C3 &amp; C4 &mdash; MEDEA</div>
+    <div class="codeblock"><pre>df[df['DCSREAS']=='<span class="bugline">ADVERSE EVENT</span>']    <span class="cm"># real value is 'Adverse Event' -> 0   (GT 92)</span>
+df[df['ANRIND'] <span class="bugline">!= 'NORMAL'</span>]         <span class="cm"># codes are 'N'/'H'/'L' -> matches ALL 37132   (GT 189)</span></pre></div>
+    <p class="faildesc">MEDEA found the <i>right column</i> both times, then filtered on a category string it never checked. Inspecting <span class="mono">.unique()</span> first &mdash; which the strong model does &mdash; fixes both.</p>
+  </div>
+
+  <p><b>The takeaway:</b> these aren't reasoning failures &mdash; the code runs, the columns are right. They are <i>convention</i> failures: a missing <span class="mono">ANL01FL</span> clause, the wrong completion flag, a guessed value string. A bigger model fixes the guessable ones (cued filters, unverified strings) but reproduces the missing-<span class="mono">ANL01FL</span> clause verbatim.</p>
+
+  <h2><span class="num">07</span>How the test works</h2>
   <p>Every agent runs <b>locally on the same CSV files</b> and answers <b>blind analyst questions</b> &mdash; no CDISC coaching, no hints about which flag to use. Each agent writes and executes its own code; we score its final number against a <b>deterministic ground truth</b> computed independently from the data.</p>
   <ul style="color:var(--muted);font-size:14px;max-width:70ch">
     <li><b>Data.</b> Single-cell: the Human Lung Cell Atlas <span class="mono">obs</span> table (584,944 cells). Clinical: the public CDISC ADaM pilot submission (<span class="mono">adsl / adtte / adlbc / adae</span>), converted XPT&rarr;CSV.</li>
