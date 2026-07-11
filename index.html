@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Natural Joints &mdash; Can AI data agents read clinical-trial conventions?</title>
+<meta name="description" content="Three biomedical AI agents (Biomni, CellVoyager, MEDEA) benchmarked on single-cell and CDISC ADaM data-quality traps. They ace single-cell but break on analysis-flag conventions -- and a bigger model does not fix the analysis-flag traps.">
+<script data-goatcounter="https://natural-joints.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<style>
+  :root{
+    --bg:#F5F7F9; --surface:#FFFFFF; --raised:#FBFCFD;
+    --ink:#161A20; --muted:#5C6672; --faint:#8A93A0;
+    --border:#E3E7ED; --border-strong:#D2D8E0;
+    --accent:#0C7A82; --accent-soft:#E2F0F0;
+    --pass:#167A5B; --pass-bg:#E4F1EB; --pass-line:#2FA37C;
+    --partial:#B5791A; --partial-bg:#F6ECD8; --partial-line:#D19B34;
+    --break:#BC3A3A; --break-bg:#F7E3E2; --break-line:#D26461;
+    --font-display:ui-sans-serif,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    --font-mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0D1014; --surface:#151A20; --raised:#1A2029;
+      --ink:#E6EBF1; --muted:#9AA4B1; --faint:#6C7684;
+      --border:#262D36; --border-strong:#333C47;
+      --accent:#22C3C3; --accent-soft:#0F2A2C;
+      --pass:#40CC9A; --pass-bg:#0F251E; --pass-line:#2E8E6C;
+      --partial:#E3AD40; --partial-bg:#2A2211; --partial-line:#A87E28;
+      --break:#EE6E6A; --break-bg:#2C1616; --break-line:#B24C49;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0D1014; --surface:#151A20; --raised:#1A2029;
+    --ink:#E6EBF1; --muted:#9AA4B1; --faint:#6C7684;
+    --border:#262D36; --border-strong:#333C47;
+    --accent:#22C3C3; --accent-soft:#0F2A2C;
+    --pass:#40CC9A; --pass-bg:#0F251E; --pass-line:#2E8E6C;
+    --partial:#E3AD40; --partial-bg:#2A2211; --partial-line:#A87E28;
+    --break:#EE6E6A; --break-bg:#2C1616; --break-line:#B24C49;
+  }
+  :root[data-theme="light"]{
+    --bg:#F5F7F9; --surface:#FFFFFF; --raised:#FBFCFD;
+    --ink:#161A20; --muted:#5C6672; --faint:#8A93A0;
+    --border:#E3E7ED; --border-strong:#D2D8E0;
+    --accent:#0C7A82; --accent-soft:#E2F0F0;
+    --pass:#167A5B; --pass-bg:#E4F1EB; --pass-line:#2FA37C;
+    --partial:#B5791A; --partial-bg:#F6ECD8; --partial-line:#D19B34;
+    --break:#BC3A3A; --break-bg:#F7E3E2; --break-line:#D26461;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:var(--font-display);line-height:1.55;-webkit-font-smoothing:antialiased;font-size:16px}
+  .wrap{max-width:1040px;margin:0 auto;padding:clamp(20px,5vw,64px) clamp(18px,5vw,40px)}
+  .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  h1{font-size:clamp(30px,5.5vw,50px);line-height:1.05;letter-spacing:-.02em;font-weight:800;margin:.35em 0 .28em;text-wrap:balance;max-width:20ch}
+  .lede{font-size:clamp(17px,2.3vw,20px);color:var(--muted);max-width:66ch;margin:0}
+  .lede b{color:var(--ink);font-weight:650}
+  a{color:var(--accent)}
+  h2{font-size:clamp(21px,3vw,27px);letter-spacing:-.015em;font-weight:750;margin:2.4em 0 .5em;text-wrap:balance}
+  h2 .num{font-family:var(--font-mono);font-size:.62em;color:var(--accent);margin-right:.5em;font-weight:600}
+  p{max-width:70ch}
+  .sub{color:var(--muted);font-size:14px;margin:.2em 0 1em}
+
+  .domains{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:32px 0 6px}
+  @media(max-width:680px){.domains{grid-template-columns:1fr}}
+  .dcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px 18px;position:relative;overflow:hidden}
+  .dcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+  .dcard.zone::before{background:var(--break-line)}
+  .dcard.ok::before{background:var(--pass-line)}
+  .dcard .dt{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .dcard .dn{font-size:16px;font-weight:750;letter-spacing:-.01em;margin:7px 0 4px;text-wrap:balance}
+  .dcard .ds{font-size:13px;color:var(--muted);margin:0}
+  .dcard .verdict{display:inline-block;margin-top:9px;font-family:var(--font-mono);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+  .dcard.ok .verdict{color:var(--pass);background:var(--pass-bg)}
+  .dcard.zone .verdict{color:var(--break);background:var(--break-bg)}
+
+  .tablewrap{overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--border);vertical-align:top}
+  thead th{background:var(--raised);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;position:sticky;top:0}
+  tbody tr:last-child td{border-bottom:none}
+  td.case{font-family:var(--font-mono);font-weight:700;white-space:nowrap;font-size:12.5px}
+  td .q{color:var(--muted);font-size:12.5px;display:block;margin-top:2px;font-weight:400;white-space:normal}
+  .tag{display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap;line-height:1.5}
+  .pass{color:var(--pass);background:var(--pass-bg)}
+  .brk{color:var(--break);background:var(--break-bg)}
+  .part{color:var(--partial);background:var(--partial-bg)}
+  .na{color:var(--faint);background:transparent;font-weight:500}
+  .mono{font-family:var(--font-mono);font-size:12px}
+  .arrow{color:var(--faint);padding:0 2px}
+  .note{color:var(--muted);font-size:12px;display:block;margin-top:3px;white-space:normal}
+
+  .callout{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--break-line);border-radius:12px;padding:20px 22px;margin:20px 0}
+  .callout.good{border-left-color:var(--pass-line)}
+  .callout h3{margin:0 0 .35em;font-size:18px;font-weight:750}
+  .callout .big{font-family:var(--font-mono);font-size:clamp(26px,5vw,40px);font-weight:800;letter-spacing:-.02em;margin:.15em 0}
+  .callout .big .wrong{color:var(--break)} .callout .big .right{color:var(--pass)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr}}
+  .rule{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+  .rule .rt{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+  .rule.fix .rt{color:var(--pass)} .rule.nofix .rt{color:var(--break)}
+  .rule ul{margin:.2em 0 0;padding-left:18px} .rule li{font-size:13.5px;margin:.3em 0;color:var(--muted)}
+  .rule li b{color:var(--ink)}
+
+  hr{border:none;border-top:1px solid var(--border);margin:2.6em 0}
+  footer{color:var(--muted);font-size:13px;margin-top:3em}
+  footer a{font-weight:600}
+  .brand{font-weight:800;color:var(--ink)}
+  .toggle{position:fixed;top:14px;right:14px;font-family:var(--font-mono);font-size:11px;border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:20px;padding:5px 11px;cursor:pointer;z-index:10}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:8px 0 0}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+<button class="toggle" onclick="var r=document.documentElement,d=r.getAttribute('data-theme')==='dark';r.setAttribute('data-theme',d?'light':'dark')">◐ theme</button>
+<div class="wrap">
+
+  <div class="eyebrow">Natural Joints &middot; Agent benchmark &middot; July 2026</div>
+  <h1>Can AI data agents read clinical-trial conventions?</h1>
+  <p class="lede">We ran three biomedical AI agents &mdash; <b>Biomni</b>, <b>CellVoyager</b>, and <b>MEDEA</b> &mdash; on the same blind data-quality questions over single-cell and CDISC clinical-trial data. They <b>ace single-cell</b>. They <b>break on clinical-trial analysis conventions</b>. And on the traps that matter most, <b>a stronger model does not save them.</b></p>
+
+  <div class="domains">
+    <div class="dcard ok">
+      <div class="dt">Single-cell (HLCA)</div>
+      <div class="dn">Well-known pitfalls</div>
+      <div class="ds">Pseudoreplication, QC contamination, batch confound, annotation quality.</div>
+      <div class="verdict">AGENTS PASS &mdash; no separation</div>
+    </div>
+    <div class="dcard zone">
+      <div class="dt">CDISC ADaM</div>
+      <div class="dn">Regulatory conventions</div>
+      <div class="ds">Analysis flags, censoring direction, completion flags, derived values.</div>
+      <div class="verdict">~5 of 8 BREAK &mdash; every agent</div>
+    </div>
+    <div class="dcard zone">
+      <div class="dt">Analysis-flag traps</div>
+      <div class="dn">ANL01FL selection</div>
+      <div class="ds">Filtering to the designated analysis records for a derived value.</div>
+      <div class="verdict">MODEL-UNFIXABLE</div>
+    </div>
+  </div>
+
+  <h2><span class="num">01</span>The result in one table</h2>
+  <p class="sub">Each agent, each test suite. "PASS/BREAK" counts are out of the cases in that suite. Arrows show the retest on the stronger model where run (<span class="mono">gemini&#8209;2.5&#8209;pro &rarr; gemini&#8209;3.1&#8209;pro</span>).</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Agent</th><th>Origin</th><th>Single-cell HLCA (4)</th><th>CDISC ADaM (8)</th><th>Break-hunt (3 new)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="case">CellVoyager</td>
+        <td>Zou lab, Stanford<span class="note">Nature Methods 2026</span></td>
+        <td><span class="tag pass">4 / 4 PASS</span></td>
+        <td><span class="mono">3P / 5B</span> <span class="arrow">&rarr;</span> <span class="mono">6P / 2B</span><span class="note">2 analysis-flag traps persist</span></td>
+        <td><span class="mono">3 BREAK</span> <span class="arrow">&rarr;</span> <span class="mono">2 fixed, 1 persists</span></td>
+      </tr>
+      <tr>
+        <td class="case">Biomni</td>
+        <td>SNAP, Stanford<span class="note">Apache-2.0, 3.3k&starf;</span></td>
+        <td><span class="tag part">3 PASS + 1 partial</span></td>
+        <td><span class="mono">3P / 5B</span><span class="note">strong model only (3.1-pro)</span></td>
+        <td><span class="mono">2 BREAK, 1 pass</span> <span class="arrow">&rarr;</span> <span class="mono">1 fixed, 1 persists</span></td>
+      </tr>
+      <tr>
+        <td class="case">MEDEA</td>
+        <td>Zitnik lab, Harvard<span class="note">Apache-2.0</span></td>
+        <td><span class="tag na">not run</span></td>
+        <td><span class="mono">3P / 5B</span> <span class="arrow">&rarr;</span> <span class="mono">6P / 2B</span><span class="note">2 analysis-flag traps persist</span></td>
+        <td><span class="tag na">not run</span></td>
+      </tr>
+    </tbody>
+  </table></div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--pass-line)"></span>PASS = matched the analysis-ready convention</span>
+    <span><span class="dot" style="background:var(--break-line)"></span>BREAK = wrong final number</span>
+    <span><span class="dot" style="background:var(--partial-line)"></span>partial</span>
+  </div>
+
+  <h2><span class="num">02</span>The one case that breaks everything</h2>
+  <p>A completely ordinary clinical question &mdash; <i>"mean change from baseline in Creatine Kinase at Week&nbsp;24, by treatment arm"</i> &mdash; has one right answer that requires filtering to the designated analysis records (<span class="mono">ANL01FL=Y</span>). No agent did it. Every agent, on every model tier, silently computed over <i>all</i> lab records and returned the same wrong number.</p>
+  <div class="callout">
+    <h3>Case E2 &middot; Creatine Kinase change, Placebo arm</h3>
+    <div class="big"><span class="wrong">32.63</span> &nbsp;vs&nbsp; <span class="right">159.75</span></div>
+    <p style="margin:.3em 0 0">Every run reported <b>32.63</b>. The analysis-population truth is <b>159.75</b> &mdash; a ~5&times; placebo CK elevation (a muscle-damage safety signal) that all four agent&times;model runs erased, silently and with full confidence.</p>
+    <div class="tablewrap" style="margin-top:14px"><table style="min-width:520px">
+      <thead><tr><th>Run</th><th>Placebo CK change</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td class="case">Biomni &middot; 2.5-pro</td><td class="mono">32.63</td><td><span class="tag brk">BREAK</span></td></tr>
+        <tr><td class="case">Biomni &middot; 3.1-pro</td><td class="mono">32.63</td><td><span class="tag brk">STILL BREAKS</span></td></tr>
+        <tr><td class="case">CellVoyager &middot; 2.5-pro</td><td class="mono">32.63</td><td><span class="tag brk">BREAK</span></td></tr>
+        <tr><td class="case">CellVoyager &middot; 3.1-pro</td><td class="mono">32.63</td><td><span class="tag brk">STILL BREAKS</span></td></tr>
+        <tr><td class="case" style="color:var(--pass)">Ground truth (ANL01FL=Y)</td><td class="mono" style="color:var(--pass)">159.75</td><td><span class="tag pass">correct</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <h2><span class="num">03</span>What a bigger model does &mdash; and doesn't &mdash; fix</h2>
+  <div class="grid2">
+    <div class="rule fix">
+      <div class="rt">&#10003; Model tier FIXES</div>
+      <ul>
+        <li><b>Computation errors</b> &mdash; censoring direction, event-filtered median, out-of-range indicator, hard-coded category strings.</li>
+        <li><b>Cued conventions</b> &mdash; the phrase "primary efficacy analysis" makes the strong model apply the population filter.</li>
+        <li><b>Discoverable flags</b> &mdash; baseline via <span class="mono">ABLFL</span>; self-documenting names like <span class="mono">TRTEMFL</span>, <span class="mono">EFFFL</span>.</li>
+      </ul>
+    </div>
+    <div class="rule nofix">
+      <div class="rt">&#10007; Model tier does NOT fix</div>
+      <ul>
+        <li><b>Spontaneous analysis-flag application</b> &mdash; a plain "mean change in X at Week 24" that silently requires <span class="mono">ANL01FL=Y</span>. Both tiers use all records.</li>
+        <li><b>Authoritative-flag ambiguity</b> &mdash; which completion flag counts (<span class="mono">EOSSTT=COMPLETED</span> vs the <span class="mono">COMP24FL</span> trap).</li>
+        <li><b>Survival method</b> &mdash; reaching for Kaplan-Meier instead of a naive median.</li>
+      </ul>
+    </div>
+  </div>
+  <p><b>The rule:</b> when the convention is <i>cued or the flag is discoverable</i>, a stronger model gets it. When a mundane derived-value question <i>silently</i> requires the analysis-record flag, every agent and every model tier is confidently wrong. That residual is the moat &mdash; you need the pre-computed convention, not a bigger model.</p>
+
+  <h2><span class="num">04</span>CDISC ADaM &mdash; case by case</h2>
+  <p class="sub">Same 8 blind questions for all three agents. Biomni was run on the strong model only; CellVoyager and MEDEA show <span class="mono">2.5-pro &rarr; 3.1-pro</span>.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Case</th><th>Correct</th><th>Biomni</th><th>CellVoyager</th><th>MEDEA</th></tr></thead>
+    <tbody>
+      <tr><td class="case">C1<span class="q">Event vs censored count (CNSR convention)</span></td><td class="mono">152 / 102</td>
+        <td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag pass">PASS</span></td></tr>
+      <tr><td class="case">C2<span class="q">Median time-to-event, events only</span></td><td class="mono">27.5</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td></tr>
+      <tr><td class="case">C3<span class="q">Subjects discontinued due to AE</span></td><td class="mono">92</td>
+        <td><span class="tag pass">PASS</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td></tr>
+      <tr><td class="case">C4<span class="q">Lab records out of range</span></td><td class="mono">189</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td></tr>
+      <tr><td class="case">C5<span class="q">Analysis records count (ANL01FL)</span></td><td class="mono">5490</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag pass">PASS</span></td></tr>
+      <tr><td class="case">C6<span class="q">Completion rate (COMP24FL trap)</span></td><td class="mono">110 &middot; 43.3%</td>
+        <td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td><td><span class="tag pass">PASS</span></td></tr>
+      <tr><td class="case">H1<span class="q">Lab change-from-baseline (needs ANL01FL)</span></td><td class="mono">analysis records</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td></tr>
+      <tr><td class="case">H2<span class="q">Kaplan-Meier median survival</span></td><td class="mono">51</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub">Same break <i>count</i> (~5/8) for every agent, but a different <i>mix</i> &mdash; the agents break on different conventions. The one they all fail, on every tier, is <b>H1</b> (and its break-hunt sibling E2): applying the analysis-record flag to a derived value.</p>
+
+  <h2><span class="num">05</span>Break-hunt &mdash; three new cases</h2>
+  <p class="sub">New convention traps designed after the first run. Biomni and CellVoyager, <span class="mono">2.5-pro &rarr; 3.1-pro</span>.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Case</th><th>Correct</th><th>The trap</th><th>Biomni</th><th>CellVoyager</th></tr></thead>
+    <tbody>
+      <tr><td class="case">D1<span class="q">ADAS-Cog change @ Wk24, efficacy analysis</span></td><td class="mono">2.545 / 1.47 / 1.995</td><td class="mono">2.34 / 1.33 / 1.76<span class="note">all records, no EFFFL</span></td>
+        <td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td></tr>
+      <tr><td class="case">D3n<span class="q">Mean baseline ADAS-Cog score</span></td><td class="mono">23.73</td><td class="mono">24.80 / wrong param</td>
+        <td><span class="tag pass">PASS</span><span class="note">used ABLFL</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td></tr>
+      <tr><td class="case">E2<span class="q">Creatine Kinase change @ Wk24 (needs ANL01FL)</span></td><td class="mono">159.75 / &minus;30 / &minus;17.5</td><td class="mono">32.63 / &minus;1.07 / 0.76<span class="note">all records</span></td>
+        <td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2><span class="num">06</span>How the test works</h2>
+  <p>Every agent runs <b>locally on the same CSV files</b> and answers <b>blind analyst questions</b> &mdash; no CDISC coaching, no hints about which flag to use. Each agent writes and executes its own code; we score its final number against a <b>deterministic ground truth</b> computed independently from the data.</p>
+  <ul style="color:var(--muted);font-size:14px;max-width:70ch">
+    <li><b>Data.</b> Single-cell: the Human Lung Cell Atlas <span class="mono">obs</span> table (584,944 cells). Clinical: the public CDISC ADaM pilot submission (<span class="mono">adsl / adtte / adlbc / adae</span>), converted XPT&rarr;CSV.</li>
+    <li><b>Backbone.</b> All agents on the <b>same Gemini models</b> (<span class="mono">gemini-2.5-pro</span>, retested on <span class="mono">gemini-3.1-pro-preview</span>) &mdash; so the agent scaffold, not the model, is the variable. Each agent needed one small integration fix to route to Gemini; all behavior-neutral.</li>
+    <li><b>Scoring.</b> PASS = the final number matches the analysis-ready convention; BREAK = a wrong final number. Ground truth verified by hand from the raw tables.</li>
+    <li><b>Scope.</b> A controlled convention probe, not a leaderboard. The point is <i>where</i> capable agents fail, not ranking them.</li>
+  </ul>
+
+  <hr>
+  <footer>
+    <p><span class="brand">Natural Joints</span> &mdash; data &amp; code auditing for biomedical analysis. We find bugs in how scientific data is <i>used</i>: wrong join grain, wrong analysis flags, train/test leakage, confounds.</p>
+    <p>Agents benchmarked: <a href="https://github.com/snap-stanford/Biomni">Biomni</a>, <a href="https://github.com/zou-group/CellVoyager">CellVoyager</a>, <a href="https://github.com/mims-harvard/MEDEA">MEDEA</a>. Data: <a href="https://github.com/cdisc-org/sdtm-adam-pilot-project">CDISC ADaM pilot</a>, Human Lung Cell Atlas. &middot; <a href="https://www.natural-joints.com">natural-joints.com</a></p>
+  </footer>
+</div>
+</body>
+</html>
