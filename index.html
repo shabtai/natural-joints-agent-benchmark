@@ -128,24 +128,7 @@
 
   <div class="eyebrow">Natural Joints &middot; Agent benchmark &middot; July 2026</div>
   <h1>How biomedical data agents break &mdash; a field taxonomy</h1>
-  <p class="lede">We ran five biomedical AI agents &mdash; <b>Biomni</b>, <b>CellVoyager</b>, <b>MEDEA</b>, <b>OmicsClaw</b> and <b>K-Dense</b> &mdash; locally, on the same blind data-quality questions over single-cell, CDISC clinical-trial, LINCS and TCGA data. Their failures sort into a clean taxonomy along <b>two axes</b>. First: is there a right answer to <i>recover</i>, or is the right answer <i>&ldquo;this is unknowable&rdquo;</i>? Second: does a <b>bigger model</b> fix it? The punchline &mdash; a stronger model closes the <b>convention</b> tier and touches nothing in the <b>semantic-grounding</b> tier: masked meaning, join grain, dropout zeros, a table that was never delivered. Those need a semantic layer, not more reasoning.</p>
-
-  <div class="grid2">
-    <div class="rule fix">
-      <div class="rt" style="color:var(--accent)">Axis 1 &mdash; what a correct answer even <i>is</i></div>
-      <ul>
-        <li><b>Determinate</b> &mdash; a right value exists once you supply the missing knowledge. Pass = the number; break = a wrong number. A semantic layer <b>recovers</b> it.</li>
-        <li><b>Indeterminate</b> &mdash; no right value exists in the delivered data. Pass = <i>&ldquo;can't answer &mdash; it's masked or absent&rdquo;</i>; break = <b>any confident number</b>. A semantic layer <b>alerts</b>.</li>
-      </ul>
-    </div>
-    <div class="rule nofix">
-      <div class="rt" style="color:var(--accent)">Axis 2 &mdash; does model scale fix it</div>
-      <ul>
-        <li><b>Reasoning-fixable</b> &mdash; the agent has the data and picks the wrong rule. A bigger model knows the rule. <span class="mono">&rarr; conventions</span></li>
-        <li><b>Grounding-required</b> &mdash; the meaning isn't in the bytes. No amount of reasoning recovers it. <span class="mono">&rarr; everything else</span></li>
-      </ul>
-    </div>
-  </div>
+  <p class="lede">We ran five biomedical AI agents &mdash; <b>Biomni</b>, <b>CellVoyager</b>, <b>MEDEA</b>, <b>OmicsClaw</b> and <b>K-Dense</b> &mdash; locally, on the same blind data-quality questions over single-cell, CDISC clinical-trial, LINCS and TCGA data. Their failures sort into a clean taxonomy along <b>two axes</b>: whether a right answer exists to <i>recover</i> or the right answer is <i>&ldquo;this is unknowable&rdquo;</i>, and whether a <b>bigger model</b> fixes it. A stronger model closes the <b>convention</b> tier and touches nothing in the <b>semantic-grounding</b> tier: masked meaning, join grain, dropout zeros, a table that was never delivered. Those need a semantic layer, not more reasoning.</p>
 
   <h2><span class="num">01</span>The agents we tested</h2>
   <p class="sub">Each runs <b>locally on the same CSV files</b> and answers <b>blind analyst questions</b> &mdash; the scaffold is the variable, the data and questions are fixed.</p>
