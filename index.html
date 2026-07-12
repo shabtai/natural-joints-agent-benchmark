@@ -234,8 +234,8 @@
   <p class="sub">All five clear the convention tier at least halfway &mdash; the point isn't a ranking, it's that <i>every</i> agent that can be pushed onto the grounding families falls off the same cliff. Obfuscated-columns is the lone exception (a Biomni-only bar, 86%): the one grounding family agents partly self-solve, by matching masked columns to known LINCS landmark counts.</p>
 
   <div class="callout">
-    <h3>The two indeterminate families are the sharpest</h3>
-    <p>For families 0&ndash;5 a right value exists, so a break is a <i>wrong</i> number. For <b>family 6 (missing table)</b> &mdash; and any masked field with no key anywhere &mdash; there <b>is no answer in the delivered data</b>. The correct response is to <b>refuse and flag it</b>. An agent that returns a confident number there isn't just wrong; it is <b>fabricating data that was never delivered</b>. That is the failure a completeness check catches and reasoning never will &mdash; and where the semantic layer's job is the <b>alert</b>, not a recovered value.</p>
+    <h3>Family 6 (missing table): the correct answer is "unknown"</h3>
+    <p>For families 0&ndash;5 a correct value exists, so a break is a wrong number. Family 6 is different. I dropped a core table from a LINCS delivery &mdash; the expression matrix &mdash; and asked for a statistic that needs it. The delivered data contains no answer, so the correct response is to report the table as missing. Both agents that ran it computed a number from an unrelated column instead: CellVoyager returned <b>41.34</b>, Biomni returned its own fabricated value. This is the only family where the correct output is an <b>alert, not a number</b>, and no agent produced it.</p>
   </div>
 
   <h2><span class="num">03</span>Tier 1 &mdash; conventions (a bigger model fixes these)</h2>
