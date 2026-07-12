@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Natural Joints &mdash; Can AI data agents read clinical-trial conventions?</title>
-<meta name="description" content="Three biomedical AI agents (Biomni, CellVoyager, MEDEA) benchmarked on single-cell and CDISC ADaM data-quality traps. They ace single-cell but break on analysis-flag conventions -- and a bigger model does not fix the analysis-flag traps.">
+<meta name="description" content="Five biomedical AI agents (Biomni, CellVoyager, MEDEA, OmicsClaw, K-Dense) benchmarked on single-cell and CDISC ADaM data-quality questions. They ace single-cell but make real convention and method errors on clinical-trial data; a stronger model fixes most of them.">
 <script data-goatcounter="https://natural-joints.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <style>
   :root{
@@ -65,14 +65,14 @@
   @media(max-width:680px){.domains{grid-template-columns:1fr}}
   .dcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px 18px;position:relative;overflow:hidden}
   .dcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
-  .dcard.zone::before{background:var(--break-line)}
+  .dcard.zone::before{background:var(--partial-line)}
   .dcard.ok::before{background:var(--pass-line)}
   .dcard .dt{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
   .dcard .dn{font-size:16px;font-weight:750;letter-spacing:-.01em;margin:7px 0 4px;text-wrap:balance}
   .dcard .ds{font-size:13px;color:var(--muted);margin:0}
   .dcard .verdict{display:inline-block;margin-top:9px;font-family:var(--font-mono);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
   .dcard.ok .verdict{color:var(--pass);background:var(--pass-bg)}
-  .dcard.zone .verdict{color:var(--break);background:var(--break-bg)}
+  .dcard.zone .verdict{color:var(--partial);background:var(--partial-bg)}
 
   .tablewrap{overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
   table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
@@ -90,16 +90,16 @@
   .arrow{color:var(--faint);padding:0 2px}
   .note{color:var(--muted);font-size:12px;display:block;margin-top:3px;white-space:normal}
 
-  .callout{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--break-line);border-radius:12px;padding:20px 22px;margin:20px 0}
-  .callout.good{border-left-color:var(--pass-line)}
-  .callout h3{margin:0 0 .35em;font-size:18px;font-weight:750}
-  .callout .big{font-family:var(--font-mono);font-size:clamp(26px,5vw,40px);font-weight:800;letter-spacing:-.02em;margin:.15em 0}
-  .callout .big .wrong{color:var(--break)} .callout .big .right{color:var(--pass)}
+  .callout{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;padding:18px 20px;margin:20px 0}
+  .callout h3{margin:0 0 .35em;font-size:17px;font-weight:750}
+  .callout p{margin:.3em 0 0;font-size:14.5px;color:var(--muted)}
+  .callout p b{color:var(--ink)}
+
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
   @media(max-width:680px){.grid2{grid-template-columns:1fr}}
   .rule{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
   .rule .rt{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;margin-bottom:6px}
-  .rule.fix .rt{color:var(--pass)} .rule.nofix .rt{color:var(--break)}
+  .rule.fix .rt{color:var(--pass)} .rule.nofix .rt{color:var(--partial)}
   .rule ul{margin:.2em 0 0;padding-left:18px} .rule li{font-size:13.5px;margin:.3em 0;color:var(--muted)}
   .rule li b{color:var(--ink)}
 
@@ -128,7 +128,7 @@
 
   <div class="eyebrow">Natural Joints &middot; Agent benchmark &middot; July 2026</div>
   <h1>Can AI data agents read clinical-trial conventions?</h1>
-  <p class="lede">We ran five biomedical AI agents &mdash; <b>Biomni</b>, <b>CellVoyager</b>, <b>MEDEA</b>, <b>OmicsClaw</b> and <b>K-Dense</b> &mdash; on the same blind data-quality questions over single-cell and CDISC clinical-trial data. They <b>ace single-cell</b>. They <b>break on clinical-trial analysis conventions</b>. And on the traps that matter most, <b>a stronger model &mdash; and even a different model family &mdash; does not save them.</b></p>
+  <p class="lede">We ran five biomedical AI agents &mdash; <b>Biomni</b>, <b>CellVoyager</b>, <b>MEDEA</b>, <b>OmicsClaw</b> and <b>K-Dense</b> &mdash; on the same blind data-quality questions over single-cell and CDISC clinical-trial data. They <b>ace single-cell</b>. On clinical-trial conventions they make <b>real errors</b> &mdash; a censoring flag inverted, a plain median where survival analysis is needed, a reference-range code they never checked. A stronger model <b>fixes most of them</b>; a few are agent-specific. A blind analyst on regulatory data is confidently wrong in ways only a domain check catches.</p>
 
   <div class="domains">
     <div class="dcard ok">
@@ -140,112 +140,91 @@
     <div class="dcard zone">
       <div class="dt">CDISC ADaM</div>
       <div class="dn">Regulatory conventions</div>
-      <div class="ds">Analysis flags, censoring direction, completion flags, derived values.</div>
-      <div class="verdict">~5 of 8 BREAK &mdash; every agent</div>
+      <div class="ds">Censoring direction, survival method, reference-range codes, population filters.</div>
+      <div class="verdict">REAL ERRORS on the base model</div>
     </div>
-    <div class="dcard zone">
-      <div class="dt">Analysis-flag traps</div>
-      <div class="dn">ANL01FL selection</div>
-      <div class="ds">Filtering to the designated analysis records for a derived value.</div>
-      <div class="verdict">MODEL-UNFIXABLE</div>
+    <div class="dcard ok">
+      <div class="dt">Stronger model</div>
+      <div class="dn">gemini-3.1-pro retest</div>
+      <div class="ds">Fixes the direction, method, value-string and population errors.</div>
+      <div class="verdict">FIXES MOST &mdash; residue is agent-specific</div>
     </div>
   </div>
 
   <h2><span class="num">01</span>The result in one table</h2>
-  <p class="sub">Each agent, each test suite. "PASS/BREAK" counts are out of the cases in that suite. Arrows show the retest on the stronger model where run (<span class="mono">gemini&#8209;2.5&#8209;pro &rarr; gemini&#8209;3.1&#8209;pro</span>).</p>
+  <p class="sub">Each agent on the verified CDISC cases (see the note on ground truth below). "PASS/BREAK" is out of the clean cases; arrows show the retest on the stronger model where run (<span class="mono">2.5-pro &rarr; 3.1-pro</span>).</p>
   <div class="tablewrap"><table>
-    <thead><tr><th>Agent</th><th>Origin</th><th>Single-cell HLCA (4)</th><th>CDISC ADaM (8)</th><th>Break-hunt (3 new)</th></tr></thead>
+    <thead><tr><th>Agent</th><th>Origin</th><th>Single-cell (4)</th><th>CDISC clean cases (6)</th></tr></thead>
     <tbody>
-      <tr>
-        <td class="case">CellVoyager</td>
-        <td>Zou lab, Stanford<span class="note">Nature Methods 2026</span></td>
+      <tr><td class="case">CellVoyager</td><td>Zou lab, Stanford<span class="note">Nature Methods 2026</span></td>
         <td><span class="tag pass">4 / 4 PASS</span></td>
-        <td><span class="mono">3P / 5B</span> <span class="arrow">&rarr;</span> <span class="mono">6P / 2B</span><span class="note">2 analysis-flag traps persist</span></td>
-        <td><span class="mono">3 BREAK</span> <span class="arrow">&rarr;</span> <span class="mono">2 fixed, 1 persists</span></td>
-      </tr>
-      <tr>
-        <td class="case">Biomni</td>
-        <td>SNAP, Stanford<span class="note">Apache-2.0, 3.3k&starf;</span></td>
+        <td><span class="mono">3P / 3B</span> <span class="arrow">&rarr;</span> <span class="mono">6P / 0B</span><span class="note">all breaks fixed on 3.1-pro</span></td></tr>
+      <tr><td class="case">Biomni</td><td>SNAP, Stanford<span class="note">Apache-2.0</span></td>
         <td><span class="tag part">3 PASS + 1 partial</span></td>
-        <td><span class="mono">3P / 5B</span><span class="note">strong model only (3.1-pro)</span></td>
-        <td><span class="mono">2 BREAK, 1 pass</span> <span class="arrow">&rarr;</span> <span class="mono">1 fixed, 1 persists</span></td>
-      </tr>
-      <tr>
-        <td class="case">MEDEA</td>
-        <td>Zitnik lab, Harvard<span class="note">Apache-2.0</span></td>
+        <td><span class="mono">4P / 2B</span><span class="note">stable 2.5-pro</span></td></tr>
+      <tr><td class="case">MEDEA</td><td>Zitnik lab, Harvard<span class="note">Apache-2.0</span></td>
         <td><span class="tag na">not run</span></td>
-        <td><span class="mono">3P / 5B</span> <span class="arrow">&rarr;</span> <span class="mono">6P / 2B</span><span class="note">2 analysis-flag traps persist</span></td>
+        <td><span class="mono">2P / 4B</span> <span class="arrow">&rarr;</span> <span class="mono">5P / 1B</span><span class="note">only H2 (Kaplan-Meier) persists</span></td></tr>
+      <tr><td class="case">OmicsClaw</td><td>Tian lab<span class="note">Apache-2.0</span></td>
         <td><span class="tag na">not run</span></td>
-      </tr>
-      <tr>
-        <td class="case">OmicsClaw</td>
-        <td>Tian lab<span class="note">Apache-2.0</span></td>
+        <td><span class="mono">3P / 3B</span><span class="note">2.5-pro</span></td></tr>
+      <tr><td class="case">K-Dense</td><td>K-Dense AI<span class="note">MIT &middot; Claude-coded</span></td>
         <td><span class="tag na">not run</span></td>
-        <td><span class="mono">4P / 4B</span><span class="note">2.5-pro; H1 + H2 break</span></td>
-        <td><span class="mono">1 of 3</span><span class="note">D1 &amp; E2 break, D3n pass</span></td>
-      </tr>
-      <tr>
-        <td class="case">K-Dense</td>
-        <td>K-Dense AI<span class="note">MIT &middot; <b>Claude-coded</b></span></td>
-        <td><span class="tag na">not run</span></td>
-        <td><span class="mono">1P / 2B</span><span class="note">3-case subset; code by Claude Sonnet 4.5</span></td>
-        <td><span class="tag brk">E2 breaks</span></td>
-      </tr>
+        <td><span class="tag na">3-case subset</span><span class="note">only C1 remains after the ground-truth withdrawal</span></td></tr>
     </tbody>
   </table></div>
   <div class="legend">
-    <span><span class="dot" style="background:var(--pass-line)"></span>PASS = matched the analysis-ready convention</span>
+    <span><span class="dot" style="background:var(--pass-line)"></span>PASS = matched the convention</span>
     <span><span class="dot" style="background:var(--break-line)"></span>BREAK = wrong final number</span>
     <span><span class="dot" style="background:var(--partial-line)"></span>partial</span>
   </div>
 
-  <h2><span class="num">02</span>The one case that breaks everything</h2>
-  <p>A completely ordinary clinical question &mdash; <i>"mean change from baseline in Creatine Kinase at Week&nbsp;24, by treatment arm"</i> &mdash; has one right answer that requires filtering to the designated analysis records (<span class="mono">ANL01FL=Y</span>). No agent did it. Across <b>six runs, five agents, and two model families</b>, every one silently computed over <i>all</i> lab records and returned the same wrong number.</p>
-  <div class="callout">
-    <h3>Case E2 &middot; Creatine Kinase change, Placebo arm</h3>
-    <div class="big"><span class="wrong">32.63</span> &nbsp;vs&nbsp; <span class="right">159.75</span></div>
-    <p style="margin:.3em 0 0">Every run reported the all-records value (<b>32.63</b>). The analysis-population truth is <b>159.75</b> &mdash; a ~5&times; placebo CK elevation (a muscle-damage safety signal) that all six runs erased, silently and with full confidence. Even <b>K-Dense, whose code is written by Claude Sonnet 4.5</b> (not Gemini), makes the identical omission.</p>
-    <div class="tablewrap" style="margin-top:14px"><table style="min-width:560px">
-      <thead><tr><th>Run</th><th>Code by</th><th>Placebo CK change</th><th>Verdict</th></tr></thead>
-      <tbody>
-        <tr><td class="case">Biomni &middot; 2.5-pro</td><td class="mono">Gemini</td><td class="mono">32.63</td><td><span class="tag brk">BREAK</span></td></tr>
-        <tr><td class="case">Biomni &middot; 3.1-pro</td><td class="mono">Gemini</td><td class="mono">32.63</td><td><span class="tag brk">STILL BREAKS</span></td></tr>
-        <tr><td class="case">CellVoyager &middot; 2.5-pro</td><td class="mono">Gemini</td><td class="mono">32.63</td><td><span class="tag brk">BREAK</span></td></tr>
-        <tr><td class="case">CellVoyager &middot; 3.1-pro</td><td class="mono">Gemini</td><td class="mono">32.63</td><td><span class="tag brk">STILL BREAKS</span></td></tr>
-        <tr><td class="case">OmicsClaw &middot; 2.5-pro</td><td class="mono">Gemini</td><td class="mono">32.63</td><td><span class="tag brk">BREAK</span></td></tr>
-        <tr><td class="case">K-Dense</td><td class="mono">Claude Sonnet 4.5</td><td class="mono">32.63</td><td><span class="tag brk">BREAK</span></td></tr>
-        <tr><td class="case" style="color:var(--pass)">Ground truth (ANL01FL=Y)</td><td class="mono">&mdash;</td><td class="mono" style="color:var(--pass)">159.75</td><td><span class="tag pass">correct</span></td></tr>
-      </tbody>
-    </table></div>
-  </div>
-
-  <h2><span class="num">03</span>What a bigger model does &mdash; and doesn't &mdash; fix</h2>
+  <h2><span class="num">02</span>What the errors actually are</h2>
+  <p>The failures are not reasoning failures &mdash; the code runs and the columns are usually right. They are convention and method errors, and they cluster into a few kinds. Most are fixed by a stronger model; the exceptions are agent-specific, not universal.</p>
   <div class="grid2">
     <div class="rule fix">
-      <div class="rt">&#10003; Model tier FIXES</div>
+      <div class="rt">&#10003; Fixed by a stronger model</div>
       <ul>
-        <li><b>Computation errors</b> &mdash; censoring direction, event-filtered median, out-of-range indicator, hard-coded category strings.</li>
-        <li><b>Cued conventions</b> &mdash; the phrase "primary efficacy analysis" makes the strong model apply the population filter.</li>
-        <li><b>Discoverable flags</b> &mdash; baseline via <span class="mono">ABLFL</span>; self-documenting names like <span class="mono">TRTEMFL</span>, <span class="mono">EFFFL</span>.</li>
+        <li><b>Censoring direction</b> (C1) &mdash; <span class="mono">CNSR=0</span> is the event, not the censor.</li>
+        <li><b>Event filtering</b> (C2) &mdash; median time-to-event is over events, not all subjects.</li>
+        <li><b>Unverified value strings</b> (C3, C4) &mdash; the right column, filtered on a category value the agent never checked.</li>
+        <li><b>Population filter</b> (D1) &mdash; "primary efficacy analysis" means the efficacy population (<span class="mono">EFFFL=Y</span>).</li>
+        <li><b>Hallucinated field</b> (D3n) &mdash; the ADAS-Cog total is <span class="mono">ACTOT</span>, invented as <span class="mono">ADAST</span>.</li>
       </ul>
     </div>
     <div class="rule nofix">
-      <div class="rt">&#10007; Model tier does NOT fix</div>
+      <div class="rt">&#9679; Agent-specific residue</div>
       <ul>
-        <li><b>Spontaneous analysis-flag application</b> &mdash; a plain "mean change in X at Week 24" that silently requires <span class="mono">ANL01FL=Y</span>. Both tiers use all records.</li>
-        <li><b>Authoritative-flag ambiguity</b> &mdash; which completion flag counts (<span class="mono">EOSSTT=COMPLETED</span> vs the <span class="mono">COMP24FL</span> trap).</li>
-        <li><b>Survival method</b> &mdash; reaching for Kaplan-Meier instead of a naive median.</li>
+        <li><b>Survival method</b> (H2) &mdash; MEDEA never reaches for Kaplan-Meier and reports a naive median on both model tiers. CellVoyager gets it right; Biomni does not. So it is a scaffold gap, <i>not</i> a universal convention wall.</li>
+        <li>No case in this set was missed by every agent on the strong model. The honest takeaway is a real-but-modest gap, closed mostly by scale.</li>
       </ul>
     </div>
   </div>
-  <p><b>The rule:</b> when the convention is <i>cued or the flag is discoverable</i>, a stronger model gets it. When a mundane derived-value question <i>silently</i> requires the analysis-record flag, every agent and every model tier is confidently wrong. That residual is the moat &mdash; you need the pre-computed convention, not a bigger model.</p>
+
+  <h2><span class="num">03</span>The clearest failure: guessing a value it never checked</h2>
+  <p>The most consistent error across agents is filtering on a category string the agent assumed rather than inspected. It generalizes beyond CDISC: any coded field is a trap for an agent that does not look first.</p>
+  <div class="fail">
+    <div class="fh"><span class="tag brk">unverified value string</span> C3 &amp; C4</div>
+    <div class="codeblock"><pre>df[df['DCSREAS']=='<span class="bugline">ADVERSE EVENT</span>']    <span class="cm"># real value is 'Adverse Event' -> 0   (correct: 92)</span>
+df[df['ANRIND'].isin([<span class="bugline">'HIGH','LOW'</span>])] <span class="cm"># codes are 'N'/'H' -> 0            (correct: 189)</span>
+df[df['ANRIND'] <span class="bugline">!= 'NORMAL'</span>]           <span class="cm"># codes are 'N'/'H' -> matches ALL rows</span></pre></div>
+    <p class="faildesc">MEDEA, Biomni and OmicsClaw each found the right column, then filtered on a value they never verified &mdash; matching zero rows or every row. Inspecting <span class="mono">.unique()</span> first (which the stronger model does) fixes it.</p>
+  </div>
+  <div class="fail">
+    <div class="fh"><span class="tag pass">the one-line fix</span> D1 &mdash; what the stronger model added</div>
+    <div class="codeblock"><pre><span class="cm"># base model: mean ADAS-Cog change at Week 24, no population filter -> 2.34</span>
+df[(df['PARAMCD']=='ACTOT') &amp; (df['AVISIT']=='Week 24')]
+<span class="cm"># stronger model added one clause (after inspecting .unique()) -> 2.54</span>
+df[... &amp; (df['ANL01FL']=='Y') <span class="fixline">&amp; (df['EFFFL']=='Y')</span>]</pre></div>
+    <p class="faildesc">"Primary efficacy analysis" cues the efficacy-population filter. The gap is small (2.34 &rarr; 2.54) but real, and it closes on the stronger model &mdash; a clean example of a convention error that scale fixes.</p>
+  </div>
 
   <h2><span class="num">04</span>CDISC ADaM &mdash; case by case</h2>
-  <p class="sub">Same 8 blind questions for all agents. CellVoyager and MEDEA cells show <span class="mono">2.5-pro &rarr; 3.1-pro</span>; Biomni and OmicsClaw are their stable <span class="mono">2.5-pro</span> results.</p>
+  <p class="sub">Verified cases only. CellVoyager and MEDEA show <span class="mono">2.5-pro &rarr; 3.1-pro</span>; Biomni and OmicsClaw are stable <span class="mono">2.5-pro</span>.</p>
   <div class="tablewrap"><table style="min-width:760px">
     <thead><tr><th>Case</th><th>Correct</th><th>Biomni</th><th>CellVoyager</th><th>MEDEA</th><th>OmicsClaw</th></tr></thead>
     <tbody>
-      <tr><td class="case">C1<span class="q">Event vs censored count (CNSR convention)</span></td><td class="mono">152 / 102</td>
+      <tr><td class="case">C1<span class="q">Event vs censored (CNSR convention)</span></td><td class="mono">152 / 102</td>
         <td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag pass">PASS</span></td></tr>
       <tr><td class="case">C2<span class="q">Median time-to-event, events only</span></td><td class="mono">27.5</td>
         <td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag brk">BREAK</span></td></tr>
@@ -253,89 +232,27 @@
         <td><span class="tag pass">PASS</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag pass">PASS</span></td></tr>
       <tr><td class="case">C4<span class="q">Lab records out of range</span></td><td class="mono">189</td>
         <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag brk">BREAK</span></td></tr>
-      <tr><td class="case">C5<span class="q">Analysis records count (ANL01FL)</span></td><td class="mono">5490</td>
+      <tr><td class="case">C5<span class="q">Analysis-record count (ANL01FL)</span></td><td class="mono">5490</td>
         <td><span class="tag pass">PASS</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag pass">PASS</span></td></tr>
-      <tr><td class="case">C6<span class="q">Completion rate (COMP24FL trap)</span></td><td class="mono">110 &middot; 43.3%</td>
-        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag pass">PASS</span></td></tr>
-      <tr><td class="case">H1<span class="q">Lab change-from-baseline (needs ANL01FL)</span></td><td class="mono">analysis records</td>
-        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td><td><span class="tag brk">BREAK</span></td></tr>
       <tr><td class="case">H2<span class="q">Kaplan-Meier median survival</span></td><td class="mono">51</td>
         <td><span class="tag brk">BREAK</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td><td><span class="tag brk">BREAK</span></td></tr>
     </tbody>
   </table></div>
-  <p class="sub">Every agent breaks 4&ndash;5 of 8, on a different <i>mix</i>. Two cases <b>every agent fails</b>: <b>C4</b> (a guessed reference-range value string &mdash; fixable by inspecting the data) and <b>H1</b> (applying the analysis-record flag to a derived value &mdash; its break-hunt sibling is E2, and it is <i>not</i> fixable by scale). Note: Biomni's <b>C2</b> and <b>C5</b> read as breaks on an earlier preview-model run but pass on the stable model &mdash; a code/answer <i>decoupling</i> artifact of that endpoint, not a convention failure.</p>
+  <p class="sub">Plus three follow-up cases: <b>D1</b> efficacy-population change (Biomni &amp; CellVoyager break on 2.5-pro, both fixed on 3.1-pro; OmicsClaw breaks), <b>D3n</b> baseline via <span class="mono">ABLFL</span> (Biomni &amp; OmicsClaw pass; CellVoyager breaks then fixes), and <b>E1</b> the ADAS-Cog subscore (<span class="mono">ACTOT</span> is not the sum of all 14 items &mdash; both agents that ran it pass).</p>
 
-  <h2><span class="num">05</span>Break-hunt &mdash; three new cases</h2>
-  <p class="sub">New convention traps designed after the first run. Biomni and CellVoyager show <span class="mono">2.5-pro &rarr; 3.1-pro</span>; OmicsClaw is <span class="mono">2.5-pro</span>.</p>
-  <div class="tablewrap"><table style="min-width:720px">
-    <thead><tr><th>Case</th><th>Correct</th><th>The trap</th><th>Biomni</th><th>CellVoyager</th><th>OmicsClaw</th></tr></thead>
-    <tbody>
-      <tr><td class="case">D1<span class="q">ADAS-Cog change @ Wk24, efficacy analysis</span></td><td class="mono">2.545 / 1.47 / 1.995</td><td class="mono">2.34 / 1.33 / 1.76<span class="note">all records, no EFFFL</span></td>
-        <td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag brk">BREAK</span></td></tr>
-      <tr><td class="case">D3n<span class="q">Mean baseline ADAS-Cog score</span></td><td class="mono">23.73</td><td class="mono">24.80 / wrong param</td>
-        <td><span class="tag pass">PASS</span><span class="note">used ABLFL</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag pass">FIX</span></td><td><span class="tag pass">PASS</span></td></tr>
-      <tr><td class="case">E2<span class="q">Creatine Kinase change @ Wk24 (needs ANL01FL)</span></td><td class="mono">159.75 / &minus;30 / &minus;17.5</td><td class="mono">32.63 / &minus;1.07 / 0.76<span class="note">all records</span></td>
-        <td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td><td><span class="tag brk">BREAK</span><span class="arrow">&rarr;</span><span class="tag brk">STAY</span></td><td><span class="tag brk">BREAK</span></td></tr>
-    </tbody>
-  </table></div>
-  <p class="sub">OmicsClaw also passed the four break-hunt cases with self-documenting flags (treatment-emergent AE, efficacy population, LOCF records, and the ADAS-Cog subscore) &mdash; the same pattern as the others: it breaks only where the analysis-record flag must be applied with no cue.</p>
-
-  <h2><span class="num">06</span>The failures, in code</h2>
-  <p class="sub">The actual lines the agents generated. Almost every failure is a single filter clause &mdash; missing, wrong, or hallucinated.</p>
-
-  <div class="fail">
-    <div class="fh"><span class="tag brk">the missing filter</span> E2 &amp; H1 &mdash; the moat, unfixable by scale</div>
-    <div class="codeblock"><pre><span class="cm"># CellVoyager AND Biomni, on BOTH 2.5-pro and 3.1-pro, all wrote:</span>
-ck = adlbc[(adlbc['PARAMCD']=='CK') &amp; (adlbc['AVISIT']=='Week 24')]
-ck.groupby('TRTP')['CHG'].mean()          <span class="bugline"># -> Placebo 32.63   WRONG</span>
-<span class="fixline"># needed:  &amp; (adlbc['ANL01FL']=='Y')     -> Placebo 159.75</span></pre></div>
-    <p class="faildesc">The analysis-record filter is absent in <b>all four</b> agent&times;model runs, and no plan ever mentions <span class="mono">ANL01FL</span>. The all-records mean is diluted by non-analysis duplicate rows, erasing a ~5&times; placebo CK elevation.</p>
-  </div>
-
-  <div class="fail">
-    <div class="fh"><span class="tag pass">the one-line fix</span> D1 &mdash; what the stronger model added</div>
-    <div class="codeblock"><pre><span class="cm"># Biomni 2.5-pro: applied ANL01FL but NOT the efficacy population -></span>
-df[df['ANL01FL']=='Y'] ... ['PARAMCD']=='ACTOT' ... 'Week 24'
-    .groupby('TRTP')['CHG'].mean()        <span class="bugline"># -> 2.34   WRONG</span>
-
-<span class="cm"># Biomni 3.1-pro: added ONE clause -></span>
-df[(df['PARAMCD']=='ACTOT') &amp; (df['AVISIT']=='Week 24')
-   &amp; (df['ANL01FL']=='Y') <span class="fixline">&amp; (df['EFFFL']=='Y')</span>]     <span class="fixline"># -> 2.545  RIGHT</span></pre></div>
-    <p class="faildesc">Here the fix is literally one filter clause. The phrase "primary efficacy analysis" cued the strong model to add <span class="mono">EFFFL=='Y'</span> (and it inspected <span class="mono">.unique()</span> first). E2 has no such cue &mdash; so the same model never adds the flag.</p>
-  </div>
-
-  <div class="fail">
-    <div class="fh"><span class="tag brk">the wrong flag</span> C6 &mdash; completion (CellVoyager)</div>
-    <div class="codeblock"><pre>completed = df[df['COMP24FL']=='Y'].shape[0]   <span class="bugline"># -> 118 (46.5%)  the TRAP flag</span>
-<span class="fixline"># authoritative:  df[df['EOSSTT']=='COMPLETED']  -> 110 (43.3%)</span></pre></div>
-    <p class="faildesc">Two flags disagree: <span class="mono">COMP24FL</span> ("completed the Week-24 visit", 118) vs <span class="mono">EOSSTT=COMPLETED</span> (study completion, 110). The strong model also plans <span class="mono">COMP24FL</span> &mdash; it doesn't know which is canonical.</p>
-  </div>
-
-  <div class="fail">
-    <div class="fh"><span class="tag brk">the hallucinated field</span> D3n &mdash; baseline (CellVoyager)</div>
-    <div class="codeblock"><pre>base = adas[(adas['PARAMCD']=='<span class="bugline">ADAST</span>') &amp; (adas['ABLFL']=='Y')]
-<span class="bugline"># PARAMCD 'ADAST' does not exist -> 0 rows -> no answer</span>
-<span class="fixline"># the total-score code is 'ACTOT' (ABLFL was already correct) -> 23.73</span></pre></div>
-    <p class="faildesc">It got the baseline <i>flag</i> right (<span class="mono">ABLFL=='Y'</span>) but invented the parameter code. One hallucinated token emptied the result. Biomni used <span class="mono">'ACTOT'</span> and passed.</p>
-  </div>
-
-  <div class="fail">
-    <div class="fh"><span class="tag brk">the unverified value string</span> C3 &amp; C4 &mdash; MEDEA</div>
-    <div class="codeblock"><pre>df[df['DCSREAS']=='<span class="bugline">ADVERSE EVENT</span>']    <span class="cm"># real value is 'Adverse Event' -> 0   (GT 92)</span>
-df[df['ANRIND'] <span class="bugline">!= 'NORMAL'</span>]         <span class="cm"># codes are 'N'/'H'/'L' -> matches ALL 37132   (GT 189)</span></pre></div>
-    <p class="faildesc">MEDEA found the <i>right column</i> both times, then filtered on a category string it never checked. Inspecting <span class="mono">.unique()</span> first &mdash; which the strong model does &mdash; fixes both.</p>
-  </div>
-
-  <p><b>The takeaway:</b> these aren't reasoning failures &mdash; the code runs, the columns are right. They are <i>convention</i> failures: a missing <span class="mono">ANL01FL</span> clause, the wrong completion flag, a guessed value string. A bigger model fixes the guessable ones (cued filters, unverified strings) but reproduces the missing-<span class="mono">ANL01FL</span> clause verbatim.</p>
-
-  <h2><span class="num">07</span>How the test works</h2>
-  <p>Every agent runs <b>locally on the same CSV files</b> and answers <b>blind analyst questions</b> &mdash; no CDISC coaching, no hints about which flag to use. Each agent writes and executes its own code; we score its final number against a <b>deterministic ground truth</b> computed independently from the data.</p>
-  <ul style="color:var(--muted);font-size:14px;max-width:70ch">
-    <li><b>Data.</b> Single-cell: the Human Lung Cell Atlas <span class="mono">obs</span> table (584,944 cells). Clinical: the public CDISC ADaM pilot submission (<span class="mono">adsl / adtte / adlbc / adae</span>), converted XPT&rarr;CSV.</li>
-    <li><b>Backbone.</b> Four agents run on the <b>same Gemini models</b> (<span class="mono">gemini-2.5-pro</span>, retested on <span class="mono">gemini-3.1-pro-preview</span>) &mdash; so the agent scaffold, not the model, is the variable. Each needed one small behavior-neutral fix to route to Gemini. The exception is <b>K-Dense</b>, whose code executor is hardwired to <b>Claude Sonnet 4.5</b> &mdash; which makes its identical E2/H1 break a cross-model-<i>family</i> data point rather than a confound.</li>
-    <li><b>Scoring.</b> PASS = the final number matches the analysis-ready convention; BREAK = a wrong final number. Ground truth verified by hand from the raw tables.</li>
-    <li><b>Scope.</b> A controlled convention probe, not a leaderboard. The point is <i>where</i> capable agents fail, not ranking them.</li>
+  <h2><span class="num">05</span>How the test works &mdash; and a note on ground truth</h2>
+  <p>Every agent runs <b>locally on the same CSV files</b> and answers <b>blind analyst questions</b> &mdash; no CDISC coaching. Each writes and executes its own code; we score its final number against a <b>deterministic ground truth</b> computed independently from the data.</p>
+  <ul style="color:var(--muted);font-size:14px;max-width:72ch">
+    <li><b>Data.</b> Single-cell: the Human Lung Cell Atlas <span class="mono">obs</span> table (584,944 cells). Clinical: the public CDISC ADaM pilot submission (<span class="mono">adsl / adtte / adlbc / adae / adadas</span>).</li>
+    <li><b>Backbone.</b> Four agents on the <b>same Gemini models</b> (<span class="mono">gemini-2.5-pro</span>, retested on <span class="mono">gemini-3.1-pro-preview</span>). K-Dense's code executor is hardwired to Claude Sonnet 4.5 and it ran only a 3-case subset.</li>
+    <li><b>Ground truth is the hard part.</b> We report only cases whose correct answer we re-derived and confirmed <b>robust</b>. An earlier draft of this page featured an "analysis-flag" case that, on re-verification, turned out to be driven by a <b>sparse, outlier-heavy subset</b> (one arm had two data points; one had none). We withdrew it. Getting the analysis population right is exactly the discipline this work is about &mdash; so we hold our own benchmark to it.</li>
+    <li><b>Scope.</b> A controlled convention probe, not a leaderboard. The point is <i>where</i> capable agents stumble on regulatory conventions, and how much of that a stronger model closes.</li>
   </ul>
+
+  <div class="callout">
+    <h3>The honest takeaway</h3>
+    <p>On single-cell, these agents are strong. On clinical-trial data they make <b>real convention and method errors</b> &mdash; and a <b>stronger model recovers most of them</b>. The residual is agent-specific (a scaffold that never reaches for Kaplan-Meier), not a universal wall. The practical lesson stands regardless: <b>a blind analyst on regulatory data will be confidently wrong in ways only a domain-aware check catches.</b></p>
+  </div>
 
   <hr>
   <footer>
