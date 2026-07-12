@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Natural Joints &mdash; Can AI data agents read clinical-trial conventions?</title>
-<meta name="description" content="Five biomedical AI agents (Biomni, CellVoyager, MEDEA, OmicsClaw, K-Dense) benchmarked on single-cell and CDISC ADaM data-quality questions. They ace single-cell but make real convention and method errors on clinical-trial data; a stronger model fixes most of them.">
+<meta name="description" content="Five biomedical AI agents (Biomni, CellVoyager, MEDEA, OmicsClaw, K-Dense) benchmarked on single-cell, CDISC ADaM, LINCS, TCGA and financial-ledger data-quality questions. A stronger model fixes convention errors but not semantic-grounding failures — masked values, join grain, dropout zeros, missing tables — which every agent answers confidently wrong.">
 <script data-goatcounter="https://natural-joints.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <style>
   :root{
@@ -128,7 +128,7 @@
 
   <div class="eyebrow">Natural Joints &middot; Agent benchmark &middot; July 2026</div>
   <h1>Can AI data agents read clinical-trial conventions?</h1>
-  <p class="lede">We ran five biomedical AI agents &mdash; <b>Biomni</b>, <b>CellVoyager</b>, <b>MEDEA</b>, <b>OmicsClaw</b> and <b>K-Dense</b> &mdash; on the same blind data-quality questions over single-cell and CDISC clinical-trial data. They <b>ace single-cell</b>. On clinical-trial conventions they make <b>real errors</b> &mdash; a censoring flag inverted, a plain median where survival analysis is needed, a reference-range code they never checked. A stronger model <b>fixes most of them</b>; a few are agent-specific. A blind analyst on regulatory data is confidently wrong in ways only a domain check catches.</p>
+  <p class="lede">We ran five biomedical AI agents &mdash; <b>Biomni</b>, <b>CellVoyager</b>, <b>MEDEA</b>, <b>OmicsClaw</b> and <b>K-Dense</b> &mdash; on the same blind data-quality questions over single-cell, CDISC clinical-trial, LINCS, TCGA and financial-ledger data. They <b>ace single-cell</b>. On clinical-trial <b>conventions</b> they make real method errors &mdash; a plain median where survival analysis is needed, a reference-range code never checked &mdash; and a stronger model fixes most of them. But a second class of failure <b>survives the strongest model</b>: <b>semantic grounding</b> &mdash; a masked column's meaning, a join's true grain, a dropout zero, a table that was never delivered. Every agent answers those confidently wrong. Scale can't fix what the model can't know from the bytes.</p>
 
   <div class="domains">
     <div class="dcard ok">
@@ -257,18 +257,62 @@ df[... &amp; (df['ANL01FL']=='Y') <span class="fixline">&amp; (df['EFFFL']=='Y')
   </table></div>
   <p class="sub">Plus three follow-up cases: <b>D1</b> efficacy-population change (Biomni &amp; CellVoyager break on 2.5-pro, both fixed on 3.1-pro; OmicsClaw breaks), <b>D3n</b> baseline via <span class="mono">ABLFL</span> (Biomni &amp; OmicsClaw pass; CellVoyager breaks then fixes), and <b>E1</b> the ADAS-Cog subscore (<span class="mono">ACTOT</span> is not the sum of all 14 items &mdash; both agents that ran it pass).</p>
 
-  <h2><span class="num">05</span>How the test works &mdash; and a note on ground truth</h2>
+  <h2><span class="num">05</span>The failures a stronger model does <i>not</i> fix</h2>
+  <p>The convention errors above mostly close on a bigger model. So we asked the sharper question: are there failures that <b>survive the strongest model</b>? We took <b>Biomni's 13 verified failures</b> &mdash; spanning four datasets (CDISC ADaM, an anonymized LINCS L1000 screen, TCGA gene expression, and a relational financial ledger) and four break types &mdash; and re-ran the other agents on them on <span class="mono">gemini-3.1-pro-preview</span>. (The Biomni column is its originating failure set; where we retested Biomni on 3.1, the convention case D1 flips to a fix while the semantic cases stay broken.) We recomputed each ground truth from the raw data first (details below).</p>
+  <p>The split is stark. <b>Convention/method errors get fixed</b> by the strong model and a competent scaffold. <b>Semantic-grounding errors do not</b> &mdash; masked-value mapping, one-to-many join inflation, zero-as-missing, and a silently-absent table all still produce a confident wrong number on the best model we tested. Those are precisely the checks a semantic layer supplies.</p>
+
+  <div class="tablewrap"><table style="min-width:820px">
+    <thead><tr><th>Trap &middot; dataset</th><th>Correct</th><th>Naive answer</th><th>Biomni</th><th>CellVoyager</th><th>MEDEA</th></tr></thead>
+    <tbody>
+      <tr><td colspan="6" style="background:var(--pass-bg);color:var(--pass);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">CONVENTION / METHOD &mdash; fixed by the stronger model</td></tr>
+      <tr><td class="case">C4 &middot; CDISC<span class="q">Lab records out of range (ANRIND codes N/H)</span></td><td class="mono">189</td><td class="mono">0</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag pass">PASS</span></td></tr>
+      <tr><td class="case">H2 &middot; CDISC<span class="q">Median survival = Kaplan-Meier, not naive median</span></td><td class="mono">51</td><td class="mono">40</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span></td></tr>
+      <tr><td class="case">D1 &middot; CDISC<span class="q">Efficacy-population filter (EFFFL) on ADAS-Cog change</span></td><td class="mono">2.545</td><td class="mono">2.34</td>
+        <td><span class="tag pass">FIX</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span></td></tr>
+      <tr><td colspan="6" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">SEMANTIC GROUNDING &mdash; persists on the strongest model</td></tr>
+      <tr><td class="case">V1 &middot; LINCS<span class="q">Map "overexpression (trt_oe)" &rarr; a masked code</span></td><td class="mono">3492</td><td class="mono">gave up</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">3113</span></td><td><span class="tag na">refuses</span></td></tr>
+      <tr><td class="case">V2 &middot; LINCS<span class="q">Map "ligand (trt_lig)" &rarr; a masked code</span></td><td class="mono">622</td><td class="mono">135</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">0</span></td><td><span class="tag na">refuses</span></td></tr>
+      <tr><td class="case">V4 &middot; LINCS<span class="q">Signatures in cell line "MCF7" (masked)</span></td><td class="mono">63367</td><td class="mono">mode cell</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">0</span></td><td><span class="tag na">refuses</span></td></tr>
+      <tr><td class="case">HZ2 &middot; LINCS<span class="q">One-to-many join inflates a per-entity metric mean</span></td><td class="mono">0.2494</td><td class="mono">0.3007</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">0.3007 &mdash; merged then averaged</span></td><td><span class="tag na">refuses</span></td></tr>
+      <tr><td class="case">Z2 &middot; TCGA<span class="q">Gene mean with 53% zeros = dropout, exclude them</span></td><td class="mono">0.1085</td><td class="mono">0.0511</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">0.0511 &mdash; averaged over the zeros</span></td><td><span class="tag na">refuses</span></td></tr>
+      <tr><td class="case">Z3 &middot; TCGA<span class="q">Same, 35% zeros</span></td><td class="mono">0.2058</td><td class="mono">0.1336</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">0.1336</span></td><td><span class="tag na">refuses</span></td></tr>
+      <tr><td class="case">M5 &middot; LINCS<span class="q">Core expression matrix is absent from the delivery</span></td><td class="mono">no answer</td><td class="mono">fabricates</td>
+        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">invented 41.34 from the wrong column</span></td><td><span class="tag na">refuses</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--pass-line)"></span>PASS / FIX = correct on 3.1-pro</span>
+    <span><span class="dot" style="background:var(--break-line)"></span>BREAK = confident wrong number</span>
+    <span><span class="dot" style="background:var(--faint)"></span>refuses = MEDEA declines every masked-data task (CDISC-only)</span>
+  </div>
+  <p class="sub">Not shown: where the strong scaffold <i>rescues</i> a semantic case &mdash; CellVoyager alone decoded <b>V5</b> (HEPG2 &rarr; 28195) and got the dangling-FK drop count <b>HZ3</b> (10726) right, where Biomni broke on both. And two agents cannot even enter this arena on 3.1-pro: <b>MEDEA</b> refuses every anonymized-data task, and <b>OmicsClaw</b> fails to run on gemini-3.1 at all (a tool-calling API error on every case). Only CellVoyager executes all four break types &mdash; and it still breaks on 7 of the 13.</p>
+
+  <div class="callout" style="border-left-color:var(--break-line)">
+    <h3>Two failure modes, opposite responses to scale</h3>
+    <p>A bigger model is a <b>convention teacher</b>: it inspects <span class="mono">.unique()</span>, remembers Kaplan-Meier, applies <span class="mono">EFFFL</span>. It is <b>not a data dictionary</b>. It cannot know that a masked column codes "overexpression," that a join fans out, that 53% of a gene's values are dropout rather than real zeros, or that the matrix it is summarizing was never delivered. Every agent &mdash; on the strongest model &mdash; answered those with a confident wrong number. That is the gap a <b>semantic layer</b> closes: it carries the value map, the join grain, the zero-handling rule, and the completeness check the model cannot infer from the bytes alone.</p>
+  </div>
+
+  <h2><span class="num">06</span>How the test works &mdash; and a note on ground truth</h2>
   <p>Every agent runs <b>locally on the same CSV files</b> and answers <b>blind analyst questions</b> &mdash; no CDISC coaching. Each writes and executes its own code; we score its final number against a <b>deterministic ground truth</b> computed independently from the data.</p>
   <ul style="color:var(--muted);font-size:14px;max-width:72ch">
     <li><b>Data.</b> Single-cell: the Human Lung Cell Atlas <span class="mono">obs</span> table (584,944 cells). Clinical: the public CDISC ADaM pilot submission (<span class="mono">adsl / adtte / adlbc / adae / adadas</span>).</li>
     <li><b>Backbone.</b> Four agents on the <b>same Gemini models</b> (<span class="mono">gemini-2.5-pro</span>, retested on <span class="mono">gemini-3.1-pro-preview</span>) &mdash; so the scaffold, not the model, is the variable. K-Dense is the exception: its code executor is hardwired to <b>Claude</b>, and we ran it on <b>Claude Opus 4.8</b> (its strongest coder), which makes it a cross-model-family check.</li>
     <li><b>Ground truth is the hard part.</b> We report only cases whose correct answer we re-derived and confirmed <b>robust</b>. An earlier draft of this page featured an "analysis-flag" case that, on re-verification, turned out to be driven by a <b>sparse, outlier-heavy subset</b> (one arm had two data points; one had none). We withdrew it. A later cross-check strengthened the call: the strongest coder we tested (<b>Claude Opus 4.8</b>, via K-Dense) independently judged the analysis-record flag unnecessary for that question &mdash; reaching the same all-records answer we now treat as correct. Getting the analysis population right is exactly the discipline this work is about &mdash; so we hold our own benchmark to it.</li>
+    <li><b>The 13 semantic-grounding cases were each re-verified from raw data.</b> The masked-LINCS counts (3492, 622, 63367, 28195) and the join cases (fan-out 0.2494 vs 0.3007; 10726 dropped rows) are <b>deterministic</b> &mdash; recomputed directly against the value map and the join keys. The zero-as-missing cases are the only interpretation-dependent ones, so we checked them hardest: our own enricher's zero-handling detector scores these gene columns <b>0.88&ndash;0.94</b> "treat zeros as missing" &mdash; and, as a control, fires the <b>opposite</b> ("zeros are biological, keep them") on a lung transporter gene where excluding them would be the error. The missing-table case is verified by the table simply not being in the delivery. None are outlier-driven.</li>
     <li><b>Scope.</b> A controlled convention probe, not a leaderboard. The point is <i>where</i> capable agents stumble on regulatory conventions, and how much of that a stronger model closes.</li>
   </ul>
 
   <div class="callout">
     <h3>The honest takeaway</h3>
-    <p>On single-cell, these agents are strong. On clinical-trial data they make <b>real convention and method errors</b> &mdash; and a <b>stronger model recovers most of them</b>. The residual is agent-specific (a scaffold that never reaches for Kaplan-Meier), not a universal wall. The practical lesson stands regardless: <b>a blind analyst on regulatory data will be confidently wrong in ways only a domain-aware check catches.</b></p>
+    <p>On single-cell, these agents are strong. On clinical-trial <b>conventions</b> they make real method errors &mdash; and a stronger model recovers most of them. But there is a second class of failure that a stronger model <b>does not touch</b>: <b>semantic grounding</b>. A masked column's meaning, a join's true grain, whether a zero is a dropout or a real measurement, whether the delivered tables are even complete &mdash; every agent, on the best model we tested, answered those with a confident wrong number. Scale fixes what the model can <i>reason</i> its way to; it cannot fix what the model has <b>no way to know from the bytes</b>. <b>That is the layer we build:</b> the value map, the join grain, the zero rule, the completeness check &mdash; carried alongside the data, so a blind analyst (human or agent) stops being confidently wrong.</p>
   </div>
 
   <hr>
