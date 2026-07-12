@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Natural Joints &mdash; Can AI data agents read clinical-trial conventions?</title>
+<title>Natural Joints &mdash; How biomedical data agents break: a field taxonomy</title>
 <meta name="description" content="Five biomedical AI agents (Biomni, CellVoyager, MEDEA, OmicsClaw, K-Dense) benchmarked on single-cell, CDISC ADaM, LINCS, TCGA and financial-ledger data-quality questions. A stronger model fixes convention errors but not semantic-grounding failures — masked values, join grain, dropout zeros, missing tables — which every agent answers confidently wrong.">
 <script data-goatcounter="https://natural-joints.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <style>
@@ -127,57 +127,123 @@
 <div class="wrap">
 
   <div class="eyebrow">Natural Joints &middot; Agent benchmark &middot; July 2026</div>
-  <h1>Can AI data agents read clinical-trial conventions?</h1>
-  <p class="lede">We ran five biomedical AI agents &mdash; <b>Biomni</b>, <b>CellVoyager</b>, <b>MEDEA</b>, <b>OmicsClaw</b> and <b>K-Dense</b> &mdash; on the same blind data-quality questions over single-cell, CDISC clinical-trial, LINCS, TCGA and financial-ledger data. They <b>ace single-cell</b>. On clinical-trial <b>conventions</b> they make real method errors &mdash; a plain median where survival analysis is needed, a reference-range code never checked &mdash; and a stronger model fixes most of them. But a second class of failure <b>survives the strongest model</b>: <b>semantic grounding</b> &mdash; a masked column's meaning, a join's true grain, a dropout zero, a table that was never delivered. Every agent answers those confidently wrong. Scale can't fix what the model can't know from the bytes.</p>
+  <h1>How biomedical data agents break &mdash; a field taxonomy</h1>
+  <p class="lede">We ran five biomedical AI agents &mdash; <b>Biomni</b>, <b>CellVoyager</b>, <b>MEDEA</b>, <b>OmicsClaw</b> and <b>K-Dense</b> &mdash; locally, on the same blind data-quality questions over single-cell, CDISC clinical-trial, LINCS and TCGA data. Their failures sort into a clean taxonomy along <b>two axes</b>. First: is there a right answer to <i>recover</i>, or is the right answer <i>&ldquo;this is unknowable&rdquo;</i>? Second: does a <b>bigger model</b> fix it? The punchline &mdash; a stronger model closes the <b>convention</b> tier and touches nothing in the <b>semantic-grounding</b> tier: masked meaning, join grain, dropout zeros, a table that was never delivered. Those need a semantic layer, not more reasoning.</p>
 
-  <div class="domains">
-    <div class="dcard ok">
-      <div class="dt">Single-cell (HLCA)</div>
-      <div class="dn">Well-known pitfalls</div>
-      <div class="ds">Pseudoreplication, QC contamination, batch confound, annotation quality.</div>
-      <div class="verdict">AGENTS PASS &mdash; no separation</div>
+  <div class="grid2">
+    <div class="rule fix">
+      <div class="rt" style="color:var(--accent)">Axis 1 &mdash; what a correct answer even <i>is</i></div>
+      <ul>
+        <li><b>Determinate</b> &mdash; a right value exists once you supply the missing knowledge. Pass = the number; break = a wrong number. A semantic layer <b>recovers</b> it.</li>
+        <li><b>Indeterminate</b> &mdash; no right value exists in the delivered data. Pass = <i>&ldquo;can't answer &mdash; it's masked or absent&rdquo;</i>; break = <b>any confident number</b>. A semantic layer <b>alerts</b>.</li>
+      </ul>
     </div>
-    <div class="dcard zone">
-      <div class="dt">CDISC ADaM</div>
-      <div class="dn">Regulatory conventions</div>
-      <div class="ds">Censoring direction, survival method, reference-range codes, population filters.</div>
-      <div class="verdict">REAL ERRORS on the base model</div>
-    </div>
-    <div class="dcard ok">
-      <div class="dt">Stronger model</div>
-      <div class="dn">gemini-3.1-pro retest</div>
-      <div class="ds">Fixes the direction, method, value-string and population errors.</div>
-      <div class="verdict">FIXES MOST &mdash; residue is agent-specific</div>
+    <div class="rule nofix">
+      <div class="rt" style="color:var(--accent)">Axis 2 &mdash; does model scale fix it</div>
+      <ul>
+        <li><b>Reasoning-fixable</b> &mdash; the agent has the data and picks the wrong rule. A bigger model knows the rule. <span class="mono">&rarr; conventions</span></li>
+        <li><b>Grounding-required</b> &mdash; the meaning isn't in the bytes. No amount of reasoning recovers it. <span class="mono">&rarr; everything else</span></li>
+      </ul>
     </div>
   </div>
 
-  <h2><span class="num">01</span>The result in one table</h2>
-  <p class="sub">Each agent on the verified CDISC cases (see the note on ground truth below). "PASS/BREAK" is out of the clean cases; arrows show the retest on the stronger model where run (<span class="mono">2.5-pro &rarr; 3.1-pro</span>).</p>
-  <div class="tablewrap"><table>
-    <thead><tr><th>Agent</th><th>Origin</th><th>Single-cell (4)</th><th>CDISC clean cases (6)</th></tr></thead>
+  <h2><span class="num">01</span>The agents we tested</h2>
+  <p class="sub">Each runs <b>locally on the same CSV files</b> and answers <b>blind analyst questions</b> &mdash; the scaffold is the variable, the data and questions are fixed.</p>
+  <div class="tablewrap"><table style="min-width:680px">
+    <thead><tr><th>Agent</th><th>Origin</th><th>Code executor</th><th>Runs on masked data?</th></tr></thead>
     <tbody>
-      <tr><td class="case">CellVoyager</td><td>Zou lab, Stanford<span class="note">Nature Methods 2026</span></td>
-        <td><span class="tag pass">4 / 4 PASS</span></td>
-        <td><span class="mono">3P / 3B</span> <span class="arrow">&rarr;</span> <span class="mono">6P / 0B</span><span class="note">all breaks fixed on 3.1-pro</span></td></tr>
-      <tr><td class="case">Biomni</td><td>SNAP, Stanford<span class="note">Apache-2.0</span></td>
-        <td><span class="tag part">3 PASS + 1 partial</span></td>
-        <td><span class="mono">4P / 2B</span><span class="note">stable 2.5-pro</span></td></tr>
-      <tr><td class="case">MEDEA</td><td>Zitnik lab, Harvard<span class="note">Apache-2.0</span></td>
-        <td><span class="tag na">not run</span></td>
-        <td><span class="mono">2P / 4B</span> <span class="arrow">&rarr;</span> <span class="mono">5P / 1B</span><span class="note">only H2 (Kaplan-Meier) persists</span></td></tr>
-      <tr><td class="case">OmicsClaw</td><td>Tian lab<span class="note">Apache-2.0</span></td>
-        <td><span class="tag na">not run</span></td>
-        <td><span class="mono">3P / 3B</span><span class="note">2.5-pro</span></td></tr>
-      <tr><td class="case">K-Dense</td><td>K-Dense AI<span class="note">MIT &middot; Claude Opus 4.8</span></td>
-        <td><span class="tag na">not run</span></td>
-        <td><span class="mono">2P / 1B</span><span class="note">Opus-4.8 coder: C1 &amp; C5 pass, H2 miss; also nails D1's efficacy filter</span></td></tr>
+      <tr><td class="case">CellVoyager</td><td>Zou lab, Stanford<span class="note">Nature Methods 2026</span></td><td class="mono">Gemini 2.5 &rarr; 3.1-pro</td><td><span class="tag pass">yes &mdash; all break types</span></td></tr>
+      <tr><td class="case">Biomni</td><td>SNAP, Stanford<span class="note">Apache-2.0</span></td><td class="mono">Gemini 2.5 &rarr; 3.1-pro</td><td><span class="tag pass">yes</span></td></tr>
+      <tr><td class="case">MEDEA</td><td>Zitnik lab, Harvard<span class="note">Apache-2.0</span></td><td class="mono">Gemini 2.5 &rarr; 3.1-pro</td><td><span class="tag brk">no &mdash; refuses anonymized data</span></td></tr>
+      <tr><td class="case">OmicsClaw</td><td>Tian lab<span class="note">Apache-2.0</span></td><td class="mono">Gemini 2.5-pro</td><td><span class="tag na">n/a &mdash; won't run on 3.1</span></td></tr>
+      <tr><td class="case">K-Dense</td><td>K-Dense AI<span class="note">MIT</span></td><td class="mono">Claude Opus 4.8</td><td><span class="tag na">CDISC subset only</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub">Backbone is held fixed across the four Gemini agents (<span class="mono">gemini-2.5-pro</span>, retested on <span class="mono">gemini-3.1-pro-preview</span>); K-Dense's executor is hardwired to Claude, a deliberate cross-family check. On the single-cell baseline (Human Lung Cell Atlas, well-known pitfalls: pseudoreplication, batch confound, QC contamination) <b>every agent passes</b> &mdash; which is the point: the failures below are real signal, not general incompetence.</p>
+
+  <h2><span class="num">02</span>The trap taxonomy</h2>
+  <p>Seven families. Read the table down the <b>&ldquo;scale fixes it?&rdquo;</b> column and the story is a single line: one family is green, the rest are red &mdash; and the red ones are exactly the ones where meaning lives outside the bytes.</p>
+  <div class="tablewrap"><table style="min-width:860px">
+    <thead><tr><th>Family</th><th>What's wrong</th><th>Correct answer is&hellip;</th><th>Scale fixes it?</th><th>Cases (agents' fate)</th></tr></thead>
+    <tbody>
+      <tr><td class="case">0 &middot; Baseline pitfalls</td><td>pseudoreplication, batch, QC contamination</td><td>determinate</td><td><span class="tag na">n/a</span></td><td>single-cell HLCA &mdash; <span class="tag pass">all pass</span></td></tr>
+      <tr><td class="case">1 &middot; Convention &amp; method</td><td>right data, wrong domain rule</td><td>determinate &mdash; <b>a value</b></td><td><span class="tag pass">&#10003; yes</span></td><td>C1&ndash;C5, H2, D1</td></tr>
+      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">SEMANTIC GROUNDING &mdash; meaning lives outside the bytes &middot; scale does not fix these</td></tr>
+      <tr><td class="case">2 &middot; Obfuscated columns</td><td>headers masked to opaque codes</td><td>determinate <i>if recoverable</i></td><td><span class="tag part">&#9679; often self-recoverable</span></td><td>L1&ndash;L7 &mdash; agents mostly <span class="tag pass">pass</span> (count-matching)</td></tr>
+      <tr><td class="case">3 &middot; Obfuscated values</td><td>category/entity values masked</td><td>determinate <i>only with a value map</i></td><td><span class="tag brk">&#9679; no</span></td><td>V1&ndash;V6 &mdash; <span class="tag brk">break</span></td></tr>
+      <tr><td class="case">4 &middot; Join grain / structural</td><td>fan-out, dangling FK, sentinel value</td><td>determinate &mdash; a value</td><td><span class="tag brk">&#9679; no</span></td><td>HZ1&ndash;HZ4 &mdash; <span class="tag brk">break</span></td></tr>
+      <tr><td class="case">5 &middot; Zero-as-missing</td><td>dropout zeros vs biological zeros</td><td>determinate &mdash; a value</td><td><span class="tag brk">&#9679; no</span></td><td>Z1&ndash;Z4 &mdash; <span class="tag brk">break</span></td></tr>
+      <tr><td class="case">6 &middot; Missing table</td><td>a whole table absent from delivery</td><td><b>indeterminate &mdash; &ldquo;unknown&rdquo;</b></td><td><span class="tag brk">&#9679; no</span></td><td>M5 &mdash; agent <span class="tag brk">fabricates</span></td></tr>
     </tbody>
   </table></div>
   <div class="legend">
-    <span><span class="dot" style="background:var(--pass-line)"></span>PASS = matched the convention</span>
-    <span><span class="dot" style="background:var(--break-line)"></span>BREAK = wrong final number</span>
-    <span><span class="dot" style="background:var(--partial-line)"></span>partial</span>
+    <span><span class="dot" style="background:var(--pass-line)"></span>scale fixes it (reasoning)</span>
+    <span><span class="dot" style="background:var(--partial-line)"></span>partially self-recoverable</span>
+    <span><span class="dot" style="background:var(--break-line)"></span>persists (needs grounding)</span>
   </div>
+
+  <style>
+    .colchart{display:flex;gap:12px;align-items:flex-end;padding:26px 12px 10px;min-width:660px}
+    .colfam{flex:1;display:flex;flex-direction:column;align-items:center}
+    .colbars{display:flex;gap:5px;align-items:flex-end;height:200px;width:100%;justify-content:center;border-bottom:2px solid var(--border-strong)}
+    .colbar{width:19px;border-radius:4px 4px 0 0;position:relative;min-height:3px}
+    .colbar b{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--muted)}
+    .colbar.na{width:13px;background:repeating-linear-gradient(45deg,var(--border),var(--border) 3px,transparent 3px,transparent 6px)!important;min-height:14px}
+    .colfamlabel{font-size:11.5px;font-weight:700;text-align:center;margin-top:9px;line-height:1.22}
+    .colfamlabel small{display:block;color:var(--faint);font-weight:600;font-family:var(--font-mono);font-size:9.5px;margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+    .chartkey{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;margin:12px 0 2px;padding-left:12px;color:var(--muted)}
+    .chartkey span{display:inline-flex;align-items:center;gap:6px}
+    .chartkey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+  </style>
+  <p class="sub" style="margin-top:22px">Same story as a scoreboard &mdash; <b>bar height = % of that family's cases the model answered correctly on <span class="mono">gemini-3.1-pro</span></b> (taller is better). One family stands tall for the strong agents; the rest collapse to the floor.</p>
+  <div class="tablewrap"><div class="colchart">
+    <div class="colfam"><div class="colbars">
+      <div class="colbar" style="height:100%;background:var(--accent)"><b>100</b></div>
+      <div class="colbar" style="height:33%;background:var(--partial-line)"><b>33</b></div>
+      <div class="colbar" style="height:33%;background:var(--faint)"><b>33</b></div>
+    </div><div class="colfamlabel">Conventions<small>reasoning</small></div></div>
+    <div class="colfam"><div class="colbars">
+      <div class="colbar na" title="CellVoyager: not run"></div>
+      <div class="colbar" style="height:86%;background:var(--partial-line)"><b>86</b></div>
+      <div class="colbar na" title="MEDEA: not run"></div>
+    </div><div class="colfamlabel">Obfusc.&nbsp;columns<small>recoverable</small></div></div>
+    <div class="colfam"><div class="colbars">
+      <div class="colbar" style="height:25%;background:var(--accent)"><b>25</b></div>
+      <div class="colbar" style="height:25%;background:var(--partial-line)"><b>25</b></div>
+      <div class="colbar" style="height:3px;background:var(--faint)"><b>ref</b></div>
+    </div><div class="colfamlabel">Obfusc.&nbsp;values<small>grounding</small></div></div>
+    <div class="colfam"><div class="colbars">
+      <div class="colbar" style="height:50%;background:var(--accent)"><b>50</b></div>
+      <div class="colbar" style="height:3px;background:var(--partial-line)"><b>0</b></div>
+      <div class="colbar" style="height:3px;background:var(--faint)"><b>ref</b></div>
+    </div><div class="colfamlabel">Join&nbsp;grain<small>grounding</small></div></div>
+    <div class="colfam"><div class="colbars">
+      <div class="colbar" style="height:3px;background:var(--accent)"><b>0</b></div>
+      <div class="colbar" style="height:3px;background:var(--partial-line)"><b>0</b></div>
+      <div class="colbar na" title="MEDEA: not run (TCGA, not masked)"></div>
+    </div><div class="colfamlabel">Zero-as-missing<small>grounding</small></div></div>
+    <div class="colfam"><div class="colbars">
+      <div class="colbar" style="height:3px;background:var(--accent)"><b>0</b></div>
+      <div class="colbar" style="height:3px;background:var(--partial-line)"><b>0</b></div>
+      <div class="colbar na" title="MEDEA: refuses / not run"></div>
+    </div><div class="colfamlabel">Missing&nbsp;table<small>indeterminate</small></div></div>
+  </div></div>
+  <div class="chartkey">
+    <span><i style="background:var(--accent)"></i>CellVoyager</span>
+    <span><i style="background:var(--partial-line)"></i>Biomni</span>
+    <span><i style="background:var(--faint)"></i>MEDEA</span>
+    <span><i class="na" style="background:repeating-linear-gradient(45deg,var(--border),var(--border) 3px,transparent 3px,transparent 6px)"></i>not run</span>
+    <span><span class="mono" style="font-size:11px">ref</span> = refuses masked data</span>
+  </div>
+  <p class="sub">OmicsClaw and K-Dense aren't plotted: OmicsClaw can't run on <span class="mono">gemini-3.1</span> (a tool-calling API error on every case) and K-Dense's Claude executor was only run on the CDISC subset. Obfuscated-columns has a Biomni-only bar &mdash; it's the one grounding family agents partly self-solve, by matching masked columns to known LINCS landmark counts.</p>
+
+  <div class="callout">
+    <h3>The two indeterminate families are the sharpest</h3>
+    <p>For families 0&ndash;5 a right value exists, so a break is a <i>wrong</i> number. For <b>family 6 (missing table)</b> &mdash; and any masked field with no key anywhere &mdash; there <b>is no answer in the delivered data</b>. The correct response is to <b>refuse and flag it</b>. An agent that returns a confident number there isn't just wrong; it is <b>fabricating data that was never delivered</b>. That is the failure a completeness check catches and reasoning never will &mdash; and where the semantic layer's job is the <b>alert</b>, not a recovered value.</p>
+  </div>
+
+  <h2><span class="num">03</span>Tier 1 &mdash; conventions (a bigger model fixes these)</h2>
+  <p>Family 1: the code runs and the columns are right; the agent applies the wrong domain rule. On <span class="mono">gemini-3.1-pro</span> these mostly close &mdash; the model inspects <span class="mono">.unique()</span>, remembers Kaplan-Meier, applies the population filter. The clearest single case:</p>
 
   <div class="callout" style="border-left-color:var(--break-line)">
     <h3>The case that breaks most agents: median survival</h3>
@@ -196,30 +262,8 @@
     <p>Two agents skip survival analysis entirely and report the naive median; one attempts Kaplan-Meier but botches the boundary; and the strongest coder we tested computes the right estimate, then reports the wrong one. It is a method convention with an unambiguous right answer &mdash; and it is the clearest failure that survives independent verification.</p>
   </div>
 
-  <h2><span class="num">02</span>What the errors actually are</h2>
-  <p>The failures are not reasoning failures &mdash; the code runs and the columns are usually right. They are convention and method errors, and they cluster into a few kinds. Most are fixed by a stronger model; the exceptions are agent-specific, not universal.</p>
-  <div class="grid2">
-    <div class="rule fix">
-      <div class="rt">&#10003; Fixed by a stronger model</div>
-      <ul>
-        <li><b>Censoring direction</b> (C1) &mdash; <span class="mono">CNSR=0</span> is the event, not the censor.</li>
-        <li><b>Event filtering</b> (C2) &mdash; median time-to-event is over events, not all subjects.</li>
-        <li><b>Unverified value strings</b> (C3, C4) &mdash; the right column, filtered on a category value the agent never checked.</li>
-        <li><b>Population filter</b> (D1) &mdash; "primary efficacy analysis" means the efficacy population (<span class="mono">EFFFL=Y</span>).</li>
-        <li><b>Hallucinated field</b> (D3n) &mdash; the ADAS-Cog total is <span class="mono">ACTOT</span>, invented as <span class="mono">ADAST</span>.</li>
-      </ul>
-    </div>
-    <div class="rule nofix">
-      <div class="rt">&#9679; Agent-specific residue</div>
-      <ul>
-        <li><b>Survival method</b> (H2) &mdash; MEDEA never reaches for Kaplan-Meier and reports a naive median on both model tiers. CellVoyager gets it right; Biomni does not. So it is a scaffold gap, <i>not</i> a universal convention wall.</li>
-        <li>No case in this set was missed by every agent on the strong model. The honest takeaway is a real-but-modest gap, closed mostly by scale.</li>
-      </ul>
-    </div>
-  </div>
-
-  <h2><span class="num">03</span>The clearest failure: guessing a value it never checked</h2>
-  <p>The most consistent error across agents is filtering on a category string the agent assumed rather than inspected. It generalizes beyond CDISC: any coded field is a trap for an agent that does not look first.</p>
+  <h3 style="font-size:18px;font-weight:750;margin:2em 0 .4em">A second Tier-1 example: guessing a value it never checked</h3>
+  <p>The most consistent convention error is filtering on a category string the agent assumed rather than inspected &mdash; the right column, a value that matches zero rows or every row. A stronger model fixes it by inspecting <span class="mono">.unique()</span> first.</p>
   <div class="fail">
     <div class="fh"><span class="tag brk">unverified value string</span> C3 &amp; C4</div>
     <div class="codeblock"><pre>df[df['DCSREAS']=='<span class="bugline">ADVERSE EVENT</span>']    <span class="cm"># real value is 'Adverse Event' -> 0   (correct: 92)</span>
@@ -236,7 +280,7 @@ df[... &amp; (df['ANL01FL']=='Y') <span class="fixline">&amp; (df['EFFFL']=='Y')
     <p class="faildesc">"Primary efficacy analysis" cues the efficacy-population filter. The gap is small (2.34 &rarr; 2.54) but real, and it closes on the stronger model &mdash; a clean example of a convention error that scale fixes.</p>
   </div>
 
-  <h2><span class="num">04</span>CDISC ADaM &mdash; case by case</h2>
+  <h3 style="font-size:18px;font-weight:750;margin:2em 0 .4em">Every CDISC convention case, by agent</h3>
   <p class="sub">Verified cases only. CellVoyager and MEDEA show <span class="mono">2.5-pro &rarr; 3.1-pro</span>; Biomni and OmicsClaw are stable <span class="mono">2.5-pro</span>.</p>
   <div class="tablewrap"><table style="min-width:760px">
     <thead><tr><th>Case</th><th>Correct</th><th>Biomni</th><th>CellVoyager</th><th>MEDEA</th><th>OmicsClaw</th></tr></thead>
@@ -257,9 +301,8 @@ df[... &amp; (df['ANL01FL']=='Y') <span class="fixline">&amp; (df['EFFFL']=='Y')
   </table></div>
   <p class="sub">Plus three follow-up cases: <b>D1</b> efficacy-population change (Biomni &amp; CellVoyager break on 2.5-pro, both fixed on 3.1-pro; OmicsClaw breaks), <b>D3n</b> baseline via <span class="mono">ABLFL</span> (Biomni &amp; OmicsClaw pass; CellVoyager breaks then fixes), and <b>E1</b> the ADAS-Cog subscore (<span class="mono">ACTOT</span> is not the sum of all 14 items &mdash; both agents that ran it pass).</p>
 
-  <h2><span class="num">05</span>The failures a stronger model does <i>not</i> fix</h2>
-  <p>The convention errors above mostly close on a bigger model. So we asked the sharper question: are there failures that <b>survive the strongest model</b>? We took <b>Biomni's 13 verified failures</b> &mdash; spanning three biomedical datasets (CDISC ADaM clinical-trial data, an anonymized LINCS L1000 perturbation screen, and TCGA tumor gene expression) and four break types &mdash; and re-ran every agent on them on <span class="mono">gemini-3.1-pro-preview</span>. We recomputed each ground truth from the raw data first (details below). We also re-ran Biomni itself on 3.1: the convention case <b>D1 flips to a fix</b>, while every semantic case stays broken (<span class="mono">V1&rarr;5110, V2&rarr;315, V4&rarr;42398, fan-out&rarr;0.3007, both zero-genes at the naive mean</span>).</p>
-  <p>The split is stark. <b>Convention/method errors get fixed</b> by the strong model and a competent scaffold. <b>Semantic-grounding errors do not</b> &mdash; masked-value mapping, one-to-many join inflation, zero-as-missing, and a silently-absent table all still produce a confident wrong number on the best model we tested. Those are precisely the checks a semantic layer supplies.</p>
+  <h2><span class="num">04</span>Tier 2 &mdash; semantic grounding (a bigger model does <i>not</i> fix these)</h2>
+  <p>Families 3&ndash;6: the meaning isn't in the bytes. We took <b>Biomni's 13 verified failures</b> across CDISC, the LINCS screen and TCGA, recomputed every ground truth from the raw data (details below), and re-ran every agent on <span class="mono">gemini-3.1-pro-preview</span>. We even re-ran Biomni itself on 3.1: the one convention case <b>D1 flips to a fix</b>, while every semantic case stays broken (<span class="mono">V1&rarr;5110, V2&rarr;315, V4&rarr;42398, fan-out&rarr;0.3007, both zero-genes at the naive mean</span>). Convention errors close on scale; grounding errors &mdash; masked values, one-to-many join inflation, zero-as-missing, a silently-absent table &mdash; still produce a confident wrong number on the best model we tested.</p>
 
   <div class="tablewrap"><table style="min-width:820px">
     <thead><tr><th>Trap &middot; dataset</th><th>Correct</th><th>Naive answer</th><th>Biomni</th><th>CellVoyager</th><th>MEDEA</th></tr></thead>
@@ -300,14 +343,14 @@ df[... &amp; (df['ANL01FL']=='Y') <span class="fixline">&amp; (df['EFFFL']=='Y')
     <p>A bigger model is a <b>convention teacher</b>: it inspects <span class="mono">.unique()</span>, remembers Kaplan-Meier, applies <span class="mono">EFFFL</span>. It is <b>not a data dictionary</b>. It cannot know that a masked column codes "overexpression," that a join fans out, that 53% of a gene's values are dropout rather than real zeros, or that the matrix it is summarizing was never delivered. Every agent &mdash; on the strongest model &mdash; answered those with a confident wrong number. That is the gap a <b>semantic layer</b> closes: it carries the value map, the join grain, the zero-handling rule, and the completeness check the model cannot infer from the bytes alone.</p>
   </div>
 
-  <h2><span class="num">06</span>How the test works &mdash; and a note on ground truth</h2>
+  <h2><span class="num">05</span>How the test works &mdash; and a note on ground truth</h2>
   <p>Every agent runs <b>locally on the same CSV files</b> and answers <b>blind analyst questions</b> &mdash; no CDISC coaching. Each writes and executes its own code; we score its final number against a <b>deterministic ground truth</b> computed independently from the data.</p>
   <ul style="color:var(--muted);font-size:14px;max-width:72ch">
-    <li><b>Data.</b> Single-cell: the Human Lung Cell Atlas <span class="mono">obs</span> table (584,944 cells). Clinical: the public CDISC ADaM pilot submission (<span class="mono">adsl / adtte / adlbc / adae / adadas</span>).</li>
+    <li><b>Data.</b> Single-cell baseline: the Human Lung Cell Atlas <span class="mono">obs</span> table (584,944 cells). Clinical: the public CDISC ADaM pilot (<span class="mono">adsl / adtte / adlbc / adae / adadas</span>). Grounding families: an anonymized LINCS L1000 perturbation screen (masked table/column/value names, with the held-out dictionary as ground truth) and TCGA colorectal tumor gene-expression matrices.</li>
     <li><b>Backbone.</b> Four agents on the <b>same Gemini models</b> (<span class="mono">gemini-2.5-pro</span>, retested on <span class="mono">gemini-3.1-pro-preview</span>) &mdash; so the scaffold, not the model, is the variable. K-Dense is the exception: its code executor is hardwired to <b>Claude</b>, and we ran it on <b>Claude Opus 4.8</b> (its strongest coder), which makes it a cross-model-family check.</li>
     <li><b>Ground truth is the hard part.</b> We report only cases whose correct answer we re-derived and confirmed <b>robust</b>. An earlier draft of this page featured an "analysis-flag" case that, on re-verification, turned out to be driven by a <b>sparse, outlier-heavy subset</b> (one arm had two data points; one had none). We withdrew it. A later cross-check strengthened the call: the strongest coder we tested (<b>Claude Opus 4.8</b>, via K-Dense) independently judged the analysis-record flag unnecessary for that question &mdash; reaching the same all-records answer we now treat as correct. Getting the analysis population right is exactly the discipline this work is about &mdash; so we hold our own benchmark to it.</li>
     <li><b>The 13 semantic-grounding cases were each re-verified from raw data.</b> The masked-LINCS counts (3492, 622, 63367, 28195) and the join cases (fan-out 0.2494 vs 0.3007; 10726 dropped rows) are <b>deterministic</b> &mdash; recomputed directly against the value map and the join keys. The zero-as-missing cases are the only interpretation-dependent ones, so we checked them hardest: our own enricher's zero-handling detector scores these gene columns <b>0.88&ndash;0.94</b> "treat zeros as missing" &mdash; and, as a control, fires the <b>opposite</b> ("zeros are biological, keep them") on a lung transporter gene where excluding them would be the error. The missing-table case is verified by the table simply not being in the delivery. None are outlier-driven.</li>
-    <li><b>Scope.</b> A controlled convention probe, not a leaderboard. The point is <i>where</i> capable agents stumble on regulatory conventions, and how much of that a stronger model closes.</li>
+    <li><b>Scope.</b> A controlled taxonomy of failure modes, not a leaderboard. The point is <i>which</i> families a stronger model closes (conventions) and which it never touches (grounding) &mdash; and therefore where a semantic layer, not a bigger model, is the fix.</li>
   </ul>
 
   <div class="callout">
