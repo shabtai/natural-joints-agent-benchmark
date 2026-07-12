@@ -366,11 +366,6 @@ df[... &amp; (df['ANL01FL']=='Y') <span class="fixline">&amp; (df['EFFFL']=='Y')
     <li><b>Scope.</b> A controlled taxonomy of failure modes, not a leaderboard. The point is <i>which</i> families a stronger model closes (conventions) and which it never touches (grounding) &mdash; and therefore where a semantic layer, not a bigger model, is the fix.</li>
   </ul>
 
-  <div class="callout">
-    <h3>The honest takeaway</h3>
-    <p>On single-cell, these agents are strong. On clinical-trial <b>conventions</b> they make real method errors &mdash; and a stronger model recovers most of them. But there is a second class of failure that a stronger model <b>does not touch</b>: <b>semantic grounding</b>. A masked column's meaning, a join's true grain, whether a zero is a dropout or a real measurement, whether the delivered tables are even complete &mdash; every agent, on the best model we tested, answered those with a confident wrong number. Scale fixes what the model can <i>reason</i> its way to; it cannot fix what the model has <b>no way to know from the bytes</b>. <b>That is the layer we build:</b> the value map, the join grain, the zero rule, the completeness check &mdash; carried alongside the data, so a blind analyst (human or agent) stops being confidently wrong.</p>
-  </div>
-
   <hr>
   <footer>
     <p><span class="brand">Natural Joints</span> &mdash; data &amp; code auditing for biomedical analysis. We find bugs in how scientific data is <i>used</i>: wrong join grain, wrong analysis flags, train/test leakage, confounds.</p>
