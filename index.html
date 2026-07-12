@@ -168,9 +168,9 @@
       <tr><td class="case">OmicsClaw</td><td>Tian lab<span class="note">Apache-2.0</span></td>
         <td><span class="tag na">not run</span></td>
         <td><span class="mono">3P / 3B</span><span class="note">2.5-pro</span></td></tr>
-      <tr><td class="case">K-Dense</td><td>K-Dense AI<span class="note">MIT &middot; Claude-coded</span></td>
+      <tr><td class="case">K-Dense</td><td>K-Dense AI<span class="note">MIT &middot; Claude Opus 4.8</span></td>
         <td><span class="tag na">not run</span></td>
-        <td><span class="tag na">3-case subset</span><span class="note">only C1 remains after the ground-truth withdrawal</span></td></tr>
+        <td><span class="mono">2P / 1B</span><span class="note">Opus-4.8 coder: C1 &amp; C5 pass, H2 miss; also nails D1's efficacy filter</span></td></tr>
     </tbody>
   </table></div>
   <div class="legend">
@@ -181,7 +181,7 @@
 
   <div class="callout" style="border-left-color:var(--break-line)">
     <h3>The case that breaks most agents: median survival</h3>
-    <p>The question asks explicitly for the <b>Kaplan-Meier</b> median &mdash; the estimator that accounts for censoring. With <b>40% of subjects censored</b>, the KM median (<b>51</b>) sits well above the naive median of the recorded times (<b>40</b>). Three of four agents miss it, and for MEDEA a stronger model does not fix it.</p>
+    <p>&ldquo;Median survival time&rdquo; is a term of art: it means the <b>Kaplan-Meier</b> median, the estimator that accounts for censoring. With <b>40% of subjects censored</b>, the KM median (<b>51</b>) sits well above the naive median of the recorded times (<b>40</b>). Four of five agents miss it &mdash; and the most telling miss is <b>Claude Opus 4.8</b>, which <i>computed</i> the KM median (51) and then reported the naive 40 anyway.</p>
     <div class="tablewrap" style="margin-top:12px"><table style="min-width:560px">
       <thead><tr><th>Run</th><th>Answer</th><th>Method used</th><th>Verdict</th></tr></thead>
       <tbody>
@@ -190,9 +190,10 @@
         <tr><td class="case">MEDEA &middot; 2.5 &amp; 3.1</td><td class="mono">40</td><td>naive median (no KM)</td><td><span class="tag brk">BREAK &times;2</span></td></tr>
         <tr><td class="case">OmicsClaw &middot; 2.5</td><td class="mono">40</td><td>naive median (no KM)</td><td><span class="tag brk">BREAK</span></td></tr>
         <tr><td class="case">Biomni &middot; 2.5</td><td class="mono">55</td><td>hand-rolled KM, boundary bug</td><td><span class="tag brk">BREAK</span></td></tr>
+        <tr><td class="case">K-Dense &middot; Opus 4.8</td><td class="mono">40</td><td>computed KM=51, reported naive</td><td><span class="tag brk">BREAK</span></td></tr>
       </tbody>
     </table></div>
-    <p>Two agents skip survival analysis entirely and report the naive median; one attempts Kaplan-Meier but botches the boundary. It is a method convention with an unambiguous right answer &mdash; and it is the clearest failure that survives independent verification.</p>
+    <p>Two agents skip survival analysis entirely and report the naive median; one attempts Kaplan-Meier but botches the boundary; and the strongest coder we tested computes the right estimate, then reports the wrong one. It is a method convention with an unambiguous right answer &mdash; and it is the clearest failure that survives independent verification.</p>
   </div>
 
   <h2><span class="num">02</span>What the errors actually are</h2>
@@ -260,8 +261,8 @@ df[... &amp; (df['ANL01FL']=='Y') <span class="fixline">&amp; (df['EFFFL']=='Y')
   <p>Every agent runs <b>locally on the same CSV files</b> and answers <b>blind analyst questions</b> &mdash; no CDISC coaching. Each writes and executes its own code; we score its final number against a <b>deterministic ground truth</b> computed independently from the data.</p>
   <ul style="color:var(--muted);font-size:14px;max-width:72ch">
     <li><b>Data.</b> Single-cell: the Human Lung Cell Atlas <span class="mono">obs</span> table (584,944 cells). Clinical: the public CDISC ADaM pilot submission (<span class="mono">adsl / adtte / adlbc / adae / adadas</span>).</li>
-    <li><b>Backbone.</b> Four agents on the <b>same Gemini models</b> (<span class="mono">gemini-2.5-pro</span>, retested on <span class="mono">gemini-3.1-pro-preview</span>). K-Dense's code executor is hardwired to Claude Sonnet 4.5 and it ran only a 3-case subset.</li>
-    <li><b>Ground truth is the hard part.</b> We report only cases whose correct answer we re-derived and confirmed <b>robust</b>. An earlier draft of this page featured an "analysis-flag" case that, on re-verification, turned out to be driven by a <b>sparse, outlier-heavy subset</b> (one arm had two data points; one had none). We withdrew it. Getting the analysis population right is exactly the discipline this work is about &mdash; so we hold our own benchmark to it.</li>
+    <li><b>Backbone.</b> Four agents on the <b>same Gemini models</b> (<span class="mono">gemini-2.5-pro</span>, retested on <span class="mono">gemini-3.1-pro-preview</span>) &mdash; so the scaffold, not the model, is the variable. K-Dense is the exception: its code executor is hardwired to <b>Claude</b>, and we ran it on <b>Claude Opus 4.8</b> (its strongest coder), which makes it a cross-model-family check.</li>
+    <li><b>Ground truth is the hard part.</b> We report only cases whose correct answer we re-derived and confirmed <b>robust</b>. An earlier draft of this page featured an "analysis-flag" case that, on re-verification, turned out to be driven by a <b>sparse, outlier-heavy subset</b> (one arm had two data points; one had none). We withdrew it. A later cross-check strengthened the call: the strongest coder we tested (<b>Claude Opus 4.8</b>, via K-Dense) independently judged the analysis-record flag unnecessary for that question &mdash; reaching the same all-records answer we now treat as correct. Getting the analysis population right is exactly the discipline this work is about &mdash; so we hold our own benchmark to it.</li>
     <li><b>Scope.</b> A controlled convention probe, not a leaderboard. The point is <i>where</i> capable agents stumble on regulatory conventions, and how much of that a stronger model closes.</li>
   </ul>
 
