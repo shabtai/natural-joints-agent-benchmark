@@ -199,8 +199,8 @@
   <div class="tablewrap"><div class="colchart">
     <div class="colfam"><div class="colbars">
       <div class="colbar" style="height:100%;background:var(--accent)"><b>100</b></div>
-      <div class="colbar" style="height:33%;background:var(--partial-line)"><b>33</b></div>
-      <div class="colbar" style="height:33%;background:var(--faint)"><b>33</b></div>
+      <div class="colbar" style="height:67%;background:var(--partial-line)"><b>67</b></div>
+      <div class="colbar" style="height:83%;background:var(--faint)"><b>83</b></div>
     </div><div class="colfamlabel">Conventions<small>reasoning</small></div></div>
     <div class="colfam"><div class="colbars">
       <div class="colbar na" title="CellVoyager: not run"></div>
@@ -235,7 +235,18 @@
     <span><i class="na" style="background:repeating-linear-gradient(45deg,var(--border),var(--border) 3px,transparent 3px,transparent 6px)"></i>not run</span>
     <span><span class="mono" style="font-size:11px">ref</span> = refuses masked data</span>
   </div>
-  <p class="sub">OmicsClaw and K-Dense aren't plotted: OmicsClaw can't run on <span class="mono">gemini-3.1</span> (a tool-calling API error on every case) and K-Dense's Claude executor was only run on the CDISC subset. Obfuscated-columns has a Biomni-only bar &mdash; it's the one grounding family agents partly self-solve, by matching masked columns to known LINCS landmark counts.</p>
+  <p class="sub">The chart holds the backbone fixed at <span class="mono">gemini-3.1-pro</span> and scores across the whole taxonomy &mdash; only three agents qualify. <b>OmicsClaw</b> can't run on gemini-3.1 at all (a tool-calling API error on every case; only 2.5-pro executes) and <b>K-Dense</b>'s executor is hardwired to Claude and was only exercised on the CDISC subset &mdash; so neither reaches the LINCS/TCGA grounding families. But on the <b>convention tier</b>, where every agent has data, all five compare directly:</p>
+  <div class="tablewrap"><table style="min-width:520px">
+    <thead><tr><th>Agent</th><th>Backbone</th><th>Convention tier</th></tr></thead>
+    <tbody>
+      <tr><td class="case">CellVoyager</td><td class="mono">gemini-3.1</td><td><span class="mono" style="color:var(--pass)">100%</span> &nbsp;<span class="note" style="display:inline">6 / 6 cases</span></td></tr>
+      <tr><td class="case">MEDEA</td><td class="mono">gemini-3.1</td><td><span class="mono">83%</span> &nbsp;<span class="note" style="display:inline">5 / 6 &mdash; only Kaplan-Meier persists</span></td></tr>
+      <tr><td class="case">K-Dense</td><td class="mono">Claude Opus 4.8</td><td><span class="mono">75%</span> &nbsp;<span class="note" style="display:inline">CDISC subset; cross-family run n/a</span></td></tr>
+      <tr><td class="case">Biomni</td><td class="mono">gemini-2.5</td><td><span class="mono">67%</span> &nbsp;<span class="note" style="display:inline">4 / 6 &mdash; C4 &amp; H2 miss</span></td></tr>
+      <tr><td class="case">OmicsClaw</td><td class="mono">gemini-2.5</td><td><span class="mono">50%</span> &nbsp;<span class="note" style="display:inline">3 / 6; can't run on 3.1</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub">All five clear the convention tier at least halfway &mdash; the point isn't a ranking, it's that <i>every</i> agent that can be pushed onto the grounding families falls off the same cliff. Obfuscated-columns is the lone exception (a Biomni-only bar, 86%): the one grounding family agents partly self-solve, by matching masked columns to known LINCS landmark counts.</p>
 
   <div class="callout">
     <h3>The two indeterminate families are the sharpest</h3>
