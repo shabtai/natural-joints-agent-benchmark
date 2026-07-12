@@ -183,59 +183,61 @@
   </div>
 
   <style>
-    .colchart{display:flex;gap:12px;align-items:flex-end;padding:26px 12px 10px;min-width:660px}
-    .colfam{flex:1;display:flex;flex-direction:column;align-items:center}
-    .colbars{display:flex;gap:5px;align-items:flex-end;height:200px;width:100%;justify-content:center;border-bottom:2px solid var(--border-strong)}
-    .colbar{width:19px;border-radius:4px 4px 0 0;position:relative;min-height:3px}
-    .colbar b{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--muted)}
-    .colbar.na{width:13px;background:repeating-linear-gradient(45deg,var(--border),var(--border) 3px,transparent 3px,transparent 6px)!important;min-height:14px}
-    .colfamlabel{font-size:11.5px;font-weight:700;text-align:center;margin-top:9px;line-height:1.22}
-    .colfamlabel small{display:block;color:var(--faint);font-weight:600;font-family:var(--font-mono);font-size:9.5px;margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
-    .chartkey{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;margin:12px 0 2px;padding-left:12px;color:var(--muted)}
-    .chartkey span{display:inline-flex;align-items:center;gap:6px}
-    .chartkey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+    .bchart{min-width:720px;padding:24px 6px 4px}
+    .bcplot{display:flex;gap:14px;align-items:flex-end;height:210px;border-bottom:2px solid var(--border-strong);
+      background-image:repeating-linear-gradient(to top,var(--border) 0 1px,transparent 1px 52.5px)}
+    .bcfam{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+    .bcbars{display:flex;gap:4px;align-items:flex-end;height:210px;width:100%;justify-content:center}
+    .bcbar{width:15px;border-radius:3px 3px 0 0;min-height:2px;position:relative}
+    .bcbar b{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--ink)}
+    .bcbar.na{width:11px;min-height:15px;background:repeating-linear-gradient(45deg,var(--border),var(--border) 3px,transparent 3px,transparent 6px)!important}
+    .bcbar.na b{color:var(--faint);font-size:9px;top:-14px}
+    .bclab{font-size:11px;font-weight:700;text-align:center;margin-top:10px;line-height:1.2}
+    .bclab small{display:block;color:var(--faint);font-family:var(--font-mono);font-size:9px;font-weight:600;text-transform:uppercase;margin-top:2px;letter-spacing:.03em}
+    .bckey{display:flex;gap:15px;flex-wrap:wrap;font-size:12.5px;margin:14px 0 2px;padding-left:6px;color:var(--muted)}
+    .bckey span{display:inline-flex;align-items:center;gap:6px}
+    .bckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
   </style>
-  <p class="sub" style="margin-top:22px">Same story as a scoreboard &mdash; <b>bar height = % of that family's cases the model answered correctly on <span class="mono">gemini-3.1-pro</span></b> (taller is better). One family stands tall for the strong agents; the rest collapse to the floor.</p>
-  <div class="tablewrap"><div class="colchart">
-    <div class="colfam"><div class="colbars">
-      <div class="colbar" style="height:100%;background:var(--accent)"><b>100</b></div>
-      <div class="colbar" style="height:67%;background:var(--partial-line)"><b>67</b></div>
-      <div class="colbar" style="height:83%;background:var(--faint)"><b>83</b></div>
-    </div><div class="colfamlabel">Conventions<small>reasoning</small></div></div>
-    <div class="colfam"><div class="colbars">
-      <div class="colbar na" title="CellVoyager: not run"></div>
-      <div class="colbar" style="height:86%;background:var(--partial-line)"><b>86</b></div>
-      <div class="colbar na" title="MEDEA: not run"></div>
-    </div><div class="colfamlabel">Obfusc.&nbsp;columns<small>recoverable</small></div></div>
-    <div class="colfam"><div class="colbars">
-      <div class="colbar" style="height:25%;background:var(--accent)"><b>25</b></div>
-      <div class="colbar" style="height:25%;background:var(--partial-line)"><b>25</b></div>
-      <div class="colbar" style="height:3px;background:var(--faint)"><b>ref</b></div>
-    </div><div class="colfamlabel">Obfusc.&nbsp;values<small>grounding</small></div></div>
-    <div class="colfam"><div class="colbars">
-      <div class="colbar" style="height:50%;background:var(--accent)"><b>50</b></div>
-      <div class="colbar" style="height:3px;background:var(--partial-line)"><b>0</b></div>
-      <div class="colbar" style="height:3px;background:var(--faint)"><b>ref</b></div>
-    </div><div class="colfamlabel">Join&nbsp;grain<small>grounding</small></div></div>
-    <div class="colfam"><div class="colbars">
-      <div class="colbar" style="height:3px;background:var(--accent)"><b>0</b></div>
-      <div class="colbar" style="height:3px;background:var(--partial-line)"><b>0</b></div>
-      <div class="colbar na" title="MEDEA: not run (TCGA, not masked)"></div>
-    </div><div class="colfamlabel">Zero-as-missing<small>grounding</small></div></div>
-    <div class="colfam"><div class="colbars">
-      <div class="colbar" style="height:3px;background:var(--accent)"><b>0</b></div>
-      <div class="colbar" style="height:3px;background:var(--partial-line)"><b>0</b></div>
-      <div class="colbar na" title="MEDEA: refuses / not run"></div>
-    </div><div class="colfamlabel">Missing&nbsp;table<small>indeterminate</small></div></div>
+  <p class="sub" style="margin-top:22px">The same result as a scoreboard: <b>bar height = % of that family's cases the model answered correctly</b> (dashed gridlines at 25 / 50 / 75 / 100%). All five agents clear the convention tier; every one that can reach the grounding families collapses toward the floor.</p>
+  <div class="tablewrap"><div class="bchart"><div class="bcplot">
+    <div class="bcfam"><div class="bcbars">
+      <div class="bcbar" style="height:100%;background:var(--accent)"><b>100%</b></div>
+      <div class="bcbar" style="height:67%;background:#E0983C"><b>67%</b></div>
+      <div class="bcbar" style="height:83%;background:#5B9BD5"><b>83%</b></div>
+      <div class="bcbar" style="height:50%;background:#A579C9"><b>50%</b></div>
+      <div class="bcbar" style="height:75%;background:#E07AA0"><b>75%</b></div>
+    </div><div class="bclab">Conventions<small>reasoning</small></div></div>
+    <div class="bcfam"><div class="bcbars">
+      <div class="bcbar" style="height:86%;background:#E0983C"><b>86%</b></div>
+    </div><div class="bclab">Obfusc. columns<small>recoverable</small></div></div>
+    <div class="bcfam"><div class="bcbars">
+      <div class="bcbar" style="height:25%;background:var(--accent)"><b>25%</b></div>
+      <div class="bcbar" style="height:25%;background:#E0983C"><b>25%</b></div>
+      <div class="bcbar na" title="MEDEA refuses masked data"><b>ref</b></div>
+    </div><div class="bclab">Obfusc. values<small>grounding</small></div></div>
+    <div class="bcfam"><div class="bcbars">
+      <div class="bcbar" style="height:50%;background:var(--accent)"><b>50%</b></div>
+      <div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div>
+      <div class="bcbar na" title="MEDEA refuses masked data"><b>ref</b></div>
+    </div><div class="bclab">Join grain<small>grounding</small></div></div>
+    <div class="bcfam"><div class="bcbars">
+      <div class="bcbar" style="height:2px;background:var(--accent)"><b>0%</b></div>
+      <div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div>
+    </div><div class="bclab">Zero-as-missing<small>grounding</small></div></div>
+    <div class="bcfam"><div class="bcbars">
+      <div class="bcbar" style="height:2px;background:var(--accent)"><b>0%</b></div>
+      <div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div>
+    </div><div class="bclab">Missing table<small>indeterminate</small></div></div>
   </div></div>
-  <div class="chartkey">
-    <span><i style="background:var(--accent)"></i>CellVoyager</span>
-    <span><i style="background:var(--partial-line)"></i>Biomni</span>
-    <span><i style="background:var(--faint)"></i>MEDEA</span>
-    <span><i class="na" style="background:repeating-linear-gradient(45deg,var(--border),var(--border) 3px,transparent 3px,transparent 6px)"></i>not run</span>
+  <div class="bckey">
+    <span><i style="background:var(--accent)"></i>CellVoyager <span class="mono" style="font-size:10px">·3.1</span></span>
+    <span><i style="background:#5B9BD5"></i>MEDEA <span class="mono" style="font-size:10px">·3.1</span></span>
+    <span><i style="background:#E07AA0"></i>K-Dense <span class="mono" style="font-size:10px">·Claude</span></span>
+    <span><i style="background:#E0983C"></i>Biomni <span class="mono" style="font-size:10px">·2.5</span></span>
+    <span><i style="background:#A579C9"></i>OmicsClaw <span class="mono" style="font-size:10px">·2.5</span></span>
     <span><span class="mono" style="font-size:11px">ref</span> = refuses masked data</span>
   </div>
-  <p class="sub">The chart holds the backbone fixed at <span class="mono">gemini-3.1-pro</span> and scores across the whole taxonomy &mdash; only three agents qualify. <b>OmicsClaw</b> can't run on gemini-3.1 at all (a tool-calling API error on every case; only 2.5-pro executes) and <b>K-Dense</b>'s executor is hardwired to Claude and was only exercised on the CDISC subset &mdash; so neither reaches the LINCS/TCGA grounding families. But on the <b>convention tier</b>, where every agent has data, all five compare directly:</p>
+  <p class="sub">Only <b>CellVoyager</b>, <b>Biomni</b> and <b>MEDEA</b> appear past the first two families: <b>OmicsClaw</b> can't run on gemini-3.1 (a tool-calling API error every time) and <b>K-Dense</b>'s executor is Claude-only, run on the CDISC subset &mdash; so neither reaches the LINCS/TCGA grounding families. The exact convention-tier numbers, per agent:</p>
   <div class="tablewrap"><table style="min-width:520px">
     <thead><tr><th>Agent</th><th>Backbone</th><th>Convention tier</th></tr></thead>
     <tbody>
