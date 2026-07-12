@@ -183,7 +183,7 @@
   </div>
 
   <style>
-    .bchart{min-width:720px;padding:24px 6px 4px}
+    .bchart{min-width:720px;padding:34px 6px 4px}
     .bcplot{display:flex;gap:14px;align-items:flex-end;height:210px;border-bottom:2px solid var(--border-strong);
       background-image:repeating-linear-gradient(to top,var(--border) 0 1px,transparent 1px 52.5px)}
     .bcfam{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
@@ -349,29 +349,7 @@ df[... &amp; (df['ANL01FL']=='Y') <span class="fixline">&amp; (df['EFFFL']=='Y')
     <span><span class="dot" style="background:var(--break-line)"></span>BREAK = confident wrong number</span>
     <span><span class="dot" style="background:var(--faint)"></span>refuses = MEDEA declines every masked-data task (CDISC-only)</span>
   </div>
-  <p class="sub">Two agents can't even enter this arena on 3.1-pro: <b>MEDEA</b> refuses every anonymized-data task, and <b>OmicsClaw</b> fails to run on gemini-3.1 at all. Only <b>CellVoyager</b> executes all four grounding break types &mdash; so it's the cleanest test of the whole thesis. Here is its full run, end to end:</p>
-
-  <h3 style="font-size:18px;font-weight:750;margin:2em 0 .4em">Scorecard &mdash; CellVoyager on <span class="mono" style="font-size:15px">gemini-3.1-pro</span>, top to bottom</h3>
-  <p class="sub">The best agent we tested. It <b>aces every reasoning tier</b> and then <b>falls off the grounding cliff</b> &mdash; a clean sweep of the baseline and conventions, then 2 passes / 7 breaks / 1 non-answer across the semantic-grounding families.</p>
-  <div class="tablewrap"><table style="min-width:720px">
-    <thead><tr><th>Tier / trap</th><th>Correct</th><th>CellVoyager</th><th>Verdict</th></tr></thead>
-    <tbody>
-      <tr><td class="case">Baseline &middot; single-cell pitfalls (4)</td><td class="mono">&mdash;</td><td class="mono">&mdash;</td><td><span class="tag pass">4 / 4 PASS</span></td></tr>
-      <tr><td class="case">Tier 1 &middot; CDISC conventions (C1&ndash;C5, H2, D1)</td><td class="mono">&mdash;</td><td class="mono">&mdash;</td><td><span class="tag pass">7 / 7 PASS</span><span class="note">incl. a correct hand-rolled Kaplan-Meier (51)</span></td></tr>
-      <tr><td colspan="4" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">TIER 2 &middot; SEMANTIC GROUNDING &mdash; 2 pass / 7 break / 1 non-answer</td></tr>
-      <tr><td class="case">V1 &middot; obfusc. value (trt_oe)</td><td class="mono">3492</td><td class="mono">3113</td><td><span class="tag brk">BREAK</span></td></tr>
-      <tr><td class="case">V2 &middot; obfusc. value (trt_lig)</td><td class="mono">622</td><td class="mono">0</td><td><span class="tag brk">BREAK</span></td></tr>
-      <tr><td class="case">V4 &middot; obfusc. value (MCF7)</td><td class="mono">63367</td><td class="mono">0</td><td><span class="tag brk">BREAK</span></td></tr>
-      <tr><td class="case">V5 &middot; obfusc. value (HEPG2)</td><td class="mono">28195</td><td class="mono">28195</td><td><span class="tag pass">PASS</span><span class="note">decoded the masked cell code</span></td></tr>
-      <tr><td class="case">HZ2 &middot; join grain (fan-out)</td><td class="mono">0.2494</td><td class="mono">0.3007</td><td><span class="tag brk">BREAK</span><span class="note">merged then averaged</span></td></tr>
-      <tr><td class="case">HZ3 &middot; join grain (dangling FK)</td><td class="mono">10726</td><td class="mono">10726</td><td><span class="tag pass">PASS</span></td></tr>
-      <tr><td class="case">Z1 &middot; zero-as-missing (SLC4A1)</td><td class="mono">0.0532</td><td class="mono">&ldquo;not found&rdquo;</td><td><span class="tag na">NO ANSWER</span><span class="note">no confident number &rarr; not a break</span></td></tr>
-      <tr><td class="case">Z2 &middot; zero-as-missing (SLC7A3)</td><td class="mono">0.1085</td><td class="mono">0.0511</td><td><span class="tag brk">BREAK</span><span class="note">averaged over the dropout zeros</span></td></tr>
-      <tr><td class="case">Z3 &middot; zero-as-missing (SLC24A2)</td><td class="mono">0.2058</td><td class="mono">0.1336</td><td><span class="tag brk">BREAK</span></td></tr>
-      <tr><td class="case">M5 &middot; missing table (expression matrix)</td><td class="mono">no answer</td><td class="mono">41.34</td><td><span class="tag brk">BREAK</span><span class="note">fabricated from the wrong column</span></td></tr>
-    </tbody>
-  </table></div>
-  <p class="sub">Read it top to bottom and the cliff is the story: perfect on the baseline, perfect on conventions, then the moment the answer depends on knowledge that isn't in the bytes &mdash; a masked code, a join's grain, a dropout zero, a table that was never delivered &mdash; even the strongest agent returns a confident wrong number. The one honest non-answer (Z1, &ldquo;gene not found&rdquo;) is the exception that proves the rule: when it <i>didn't</i> guess, it didn't break.</p>
+  <p class="sub">Two agents can't reach this tier at all on 3.1-pro: <b>MEDEA</b> refuses every anonymized-data task, and <b>OmicsClaw</b> fails to run on gemini-3.1. Where an agent does run and the meaning isn't in the bytes, it returns a confident wrong number rather than flagging the gap &mdash; the one exception being CellVoyager's honest "gene not found" on Z1, which is a non-answer, not a break.</p>
 
   <div class="callout" style="border-left-color:var(--break-line)">
     <h3>Two failure modes, opposite responses to scale</h3>
