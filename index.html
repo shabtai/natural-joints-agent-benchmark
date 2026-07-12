@@ -179,6 +179,22 @@
     <span><span class="dot" style="background:var(--partial-line)"></span>partial</span>
   </div>
 
+  <div class="callout" style="border-left-color:var(--break-line)">
+    <h3>The case that breaks most agents: median survival</h3>
+    <p>The question asks explicitly for the <b>Kaplan-Meier</b> median &mdash; the estimator that accounts for censoring. With <b>40% of subjects censored</b>, the KM median (<b>51</b>) sits well above the naive median of the recorded times (<b>40</b>). Three of four agents miss it, and for MEDEA a stronger model does not fix it.</p>
+    <div class="tablewrap" style="margin-top:12px"><table style="min-width:560px">
+      <thead><tr><th>Run</th><th>Answer</th><th>Method used</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td class="case" style="color:var(--pass)">Correct (Kaplan-Meier)</td><td class="mono" style="color:var(--pass)">51</td><td>KM estimator</td><td><span class="tag pass">&mdash;</span></td></tr>
+        <tr><td class="case">CellVoyager</td><td class="mono">51</td><td>Kaplan-Meier</td><td><span class="tag pass">PASS</span></td></tr>
+        <tr><td class="case">MEDEA &middot; 2.5 &amp; 3.1</td><td class="mono">40</td><td>naive median (no KM)</td><td><span class="tag brk">BREAK &times;2</span></td></tr>
+        <tr><td class="case">OmicsClaw &middot; 2.5</td><td class="mono">40</td><td>naive median (no KM)</td><td><span class="tag brk">BREAK</span></td></tr>
+        <tr><td class="case">Biomni &middot; 2.5</td><td class="mono">55</td><td>hand-rolled KM, boundary bug</td><td><span class="tag brk">BREAK</span></td></tr>
+      </tbody>
+    </table></div>
+    <p>Two agents skip survival analysis entirely and report the naive median; one attempts Kaplan-Meier but botches the boundary. It is a method convention with an unambiguous right answer &mdash; and it is the clearest failure that survives independent verification.</p>
+  </div>
+
   <h2><span class="num">02</span>What the errors actually are</h2>
   <p>The failures are not reasoning failures &mdash; the code runs and the columns are usually right. They are convention and method errors, and they cluster into a few kinds. Most are fixed by a stronger model; the exceptions are agent-specific, not universal.</p>
   <div class="grid2">
