@@ -149,11 +149,28 @@
       <tr><td class="case">3 &middot; Obfuscated values</td><td>category / entity values masked to opaque codes</td><td class="mono" style="font-size:12px">which masked code is the MCF7 cell line</td><td>determinate with the dictionary</td><td><span class="tag brk">&#9679; no</span></td></tr>
       <tr><td class="case">4 &middot; Join grain / structural</td><td>fan-out, dangling foreign key, ambiguous grain</td><td class="mono" style="font-size:12px">a one-to-many join inflates a per-entity mean</td><td>determinate value</td><td><span class="tag brk">&#9679; no</span></td></tr>
       <tr><td class="case">5 &middot; Zero- / sentinel-as-missing</td><td>dropout zeros or sentinel codes that secretly mean "missing"</td><td class="mono" style="font-size:12px">53% of a gene's values are dropout zeros; &minus;666 = missing</td><td>determinate value</td><td><span class="tag brk">&#9679; no</span></td></tr>
-      <tr><td class="case">6 &middot; Missing table</td><td>a table absent from the delivery</td><td class="mono" style="font-size:12px">the core expression matrix was never delivered</td><td><b>indeterminate &mdash; "unknown"</b></td><td><span class="tag brk">&#9679; no</span></td></tr>
+      <tr><td class="case">6 &middot; Missing table</td><td>a table absent from the delivery</td><td class="mono" style="font-size:12px">the core expression matrix was never delivered</td><td><b>inconclusive &mdash; flag it, don't answer</b></td><td><span class="tag brk">&#9679; no</span></td></tr>
     </tbody>
   </table></div>
 
   <h2><span class="num">04</span>Results</h2>
+  <p>Every agent on every family. Cells are the share of that family's cases answered correctly on the agent's working backbone; no cell is left blank &mdash; where an agent could not run, the reason is stated.</p>
+  <div class="tablewrap"><table style="min-width:860px">
+    <thead><tr><th>Agent</th><th>Conventions</th><th>Obf. columns</th><th>Obf. values</th><th>Join grain</th><th>Zero / sentinel</th><th>Missing table</th></tr></thead>
+    <tbody>
+      <tr><td class="case">CellVoyager<span class="note">gemini-3.1</span></td>
+        <td><span class="tag pass">100%</span></td><td><span class="tag brk">29%</span></td><td><span class="tag brk">25%</span></td><td><span class="tag part">50%</span></td><td><span class="tag brk">0%</span></td><td><span class="tag brk">0%</span></td></tr>
+      <tr><td class="case">Biomni<span class="note">gemini-2.5</span></td>
+        <td><span class="tag part">67%</span></td><td><span class="tag pass">86%</span></td><td><span class="tag brk">25%</span></td><td><span class="tag brk">0%</span></td><td><span class="tag brk">0%</span></td><td><span class="tag brk">0%</span></td></tr>
+      <tr><td class="case">MEDEA<span class="note">gemini-3.1</span></td>
+        <td><span class="tag pass">83%</span></td><td><span class="tag na">refuses</span></td><td><span class="tag na">refuses</span></td><td><span class="tag na">refuses</span></td><td><span class="tag na">refuses</span></td><td><span class="tag na">refuses</span></td></tr>
+      <tr><td class="case">OmicsClaw<span class="note">gemini-2.5</span></td>
+        <td><span class="tag part">50%</span></td><td><span class="tag na">n/a &middot; 3.1</span></td><td><span class="tag na">n/a &middot; 3.1</span></td><td><span class="tag na">n/a &middot; 3.1</span></td><td><span class="tag na">n/a &middot; 3.1</span></td><td><span class="tag na">n/a &middot; 3.1</span></td></tr>
+      <tr><td class="case">K-Dense<span class="note">Claude Opus 4.8</span></td>
+        <td><span class="tag pass">75%</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub"><b>refuses</b> = MEDEA declines the task ("I cannot help with that") on every grounding family, masked or not. <b>n/a &middot; 3.1</b> = OmicsClaw cannot run on gemini-3.1 (a tool-calling API error on every case) and hangs on masked LINCS at 2.5-pro. <b>CDISC only</b> = K-Dense's Claude executor was run on the clinical-trial subset. Obfuscated columns is agent-specific: Biomni decodes masked headers by matching known LINCS landmark counts (86%); CellVoyager mostly cannot (29%). On <b>Missing table</b> no value exists to compute &mdash; the data is inconclusive, and the correct response is to flag it &mdash; yet every agent that ran it returned a confident number: models are biased to answer.</p>
 
   <style>
     .bchart{min-width:720px;padding:34px 6px 4px}
@@ -181,8 +198,9 @@
       <div class="bcbar" style="height:75%;background:#E07AA0"><b>75%</b></div>
     </div><div class="bclab">Conventions<small>reasoning</small></div></div>
     <div class="bcfam"><div class="bcbars">
+      <div class="bcbar" style="height:29%;background:var(--accent)"><b>29%</b></div>
       <div class="bcbar" style="height:86%;background:#E0983C"><b>86%</b></div>
-    </div><div class="bclab">Obfusc. columns<small>recoverable</small></div></div>
+    </div><div class="bclab">Obfusc. columns<small>agent-specific</small></div></div>
     <div class="bcfam"><div class="bcbars">
       <div class="bcbar" style="height:25%;background:var(--accent)"><b>25%</b></div>
       <div class="bcbar" style="height:25%;background:#E0983C"><b>25%</b></div>
@@ -196,7 +214,7 @@
     <div class="bcfam"><div class="bcbars">
       <div class="bcbar" style="height:2px;background:var(--accent)"><b>0%</b></div>
       <div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div>
-    </div><div class="bclab">Zero-as-missing<small>grounding</small></div></div>
+    </div><div class="bclab">Zero / sentinel<small>grounding</small></div></div>
     <div class="bcfam"><div class="bcbars">
       <div class="bcbar" style="height:2px;background:var(--accent)"><b>0%</b></div>
       <div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div>
@@ -208,11 +226,11 @@
     <span><i style="background:#E07AA0"></i>K-Dense <span class="mono" style="font-size:10px">·Claude</span></span>
     <span><i style="background:#E0983C"></i>Biomni <span class="mono" style="font-size:10px">·2.5</span></span>
     <span><i style="background:#A579C9"></i>OmicsClaw <span class="mono" style="font-size:10px">·2.5</span></span>
-    <span><span class="mono" style="font-size:11px">ref</span> = refuses masked data</span>
+    <span><span class="mono" style="font-size:11px">ref</span> = MEDEA refuses</span>
   </div>
-  <p class="sub">Only <b>CellVoyager</b>, <b>Biomni</b> and <b>MEDEA</b> reach the grounding families. <b>OmicsClaw</b> cannot run on gemini-3.1 (a tool-calling error on every case); <b>K-Dense</b>'s Claude executor was run on the CDISC subset only. Obfuscated columns is the one partial exception &mdash; agents recover masked headers by matching them to known LINCS landmark counts.</p>
+  <p class="sub">The chart plots the agents that produced results per family (bars omitted where an agent refuses or cannot run &mdash; see the matrix above). The cliff from the convention tier to the grounding tier is the whole finding.</p>
 
-  <p class="sub">Per-case results, each ground truth recomputed from raw data. "Naive" is the answer a blind analyst returns; agent columns are on <span class="mono">gemini-3.1-pro</span>.</p>
+  <p class="sub">Per-case detail for the grounding families, each ground truth recomputed from raw data. "Naive" is the answer a blind analyst returns; agent columns are on <span class="mono">gemini-3.1-pro</span>.</p>
 
   <div class="tablewrap"><table style="min-width:820px">
     <thead><tr><th>Trap &middot; dataset</th><th>Correct</th><th>Naive answer</th><th>Biomni</th><th>CellVoyager</th><th>MEDEA</th></tr></thead>
