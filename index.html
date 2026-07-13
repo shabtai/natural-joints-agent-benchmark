@@ -153,13 +153,14 @@
   <h2><span class="num">04</span>Results</h2>
   <p>Biomni versus CellVoyager on <span class="mono">gemini-3.1-pro</span>, by family. Bar height is the share of a family's cases answered correctly (gridlines at 25 / 50 / 75 / 100%). Both clear the convention tier; both fall off the grounding tier &mdash; and CellVoyager leads on every family except no-signal columns.</p>
   <style>
-    .bchart{min-width:560px;padding:34px 6px 4px}
-    .bcplot{display:flex;gap:14px;align-items:flex-end;height:210px;border-bottom:2px solid var(--border-strong);
-      background-image:repeating-linear-gradient(to top,var(--border) 0 1px,transparent 1px 52.5px)}
+    .bchart{min-width:560px;padding:36px 8px 4px}
+    .bcplot{display:flex;gap:14px;align-items:flex-end}
     .bcfam{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
-    .bcbars{display:flex;gap:5px;align-items:flex-end;height:210px;width:100%;justify-content:center}
-    .bcbar{width:20px;border-radius:3px 3px 0 0;min-height:2px;position:relative}
-    .bcbar b{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--ink)}
+    .bcbars{display:flex;gap:5px;align-items:flex-end;height:300px;width:100%;justify-content:center;
+      border-bottom:2px solid var(--border-strong);
+      background-image:repeating-linear-gradient(to top,var(--border) 0 1px,transparent 1px 75px)}
+    .bcbar{width:22px;border-radius:3px 3px 0 0;min-height:3px;position:relative}
+    .bcbar b{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--ink)}
     .bclab{font-size:11px;font-weight:700;text-align:center;margin-top:10px;line-height:1.2}
     .bclab small{display:block;color:var(--faint);font-family:var(--font-mono);font-size:9px;font-weight:600;text-transform:uppercase;margin-top:2px;letter-spacing:.03em}
     .bckey{display:flex;gap:15px;flex-wrap:wrap;font-size:12.5px;margin:14px 0 2px;padding-left:6px;color:var(--muted)}
@@ -227,44 +228,44 @@
   </div>
 
   <h2><span class="num">05</span>Every question we tested</h2>
-  <p>Each is posed blind &mdash; the agent gets the tables and the question, with no hint that a trap is present. Every question has a single deterministic answer we recomputed from the raw data.</p>
-  <div class="tablewrap"><table style="min-width:640px">
-    <thead><tr><th>Case</th><th>Blind question</th></tr></thead>
+  <p>Each is posed blind &mdash; the agent gets the tables and the question, with no hint that a trap is present. Every question has a single deterministic answer we recomputed from the raw data. The last two columns record each agent's verdict on <span class="mono">gemini-3.1-pro</span>: <span class="tag pass">solved</span> exact, <span class="tag part">near</span> a near miss, <span class="tag brk">failed</span> a wrong number, <span class="tag na">&mdash;</span> not run or no answer.</p>
+  <div class="tablewrap"><table style="min-width:720px">
+    <thead><tr><th>Case</th><th>Blind question</th><th style="text-align:center">Biomni</th><th style="text-align:center">CellVoyager</th></tr></thead>
     <tbody>
-      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Conventions (CDISC ADaM)</td></tr>
-      <tr><td class="case" style="width:1%">C1</td><td>How many subjects had an event versus were censored?</td></tr>
-      <tr><td class="case" style="width:1%">C2</td><td>What is the median time to event, over subjects who had the event?</td></tr>
-      <tr><td class="case" style="width:1%">C3</td><td>How many subjects discontinued the study because of an adverse event?</td></tr>
-      <tr><td class="case" style="width:1%">C4</td><td>How many lab records fall outside the normal reference range?</td></tr>
-      <tr><td class="case" style="width:1%">C5</td><td>How many analysis records does the lab dataset contain?</td></tr>
-      <tr><td class="case" style="width:1%">H2</td><td>What is the median survival time?</td></tr>
-      <tr><td class="case" style="width:1%">D1</td><td>What is the mean ADAS-Cog change from baseline at Week 24 for the primary efficacy analysis, per arm?</td></tr>
-      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Obfuscated columns (LINCS, masked headers)</td></tr>
-      <tr><td class="case" style="width:1%">L1</td><td>How many landmark genes are directly measured?</td></tr>
-      <tr><td class="case" style="width:1%">L2</td><td>How many best-inferred (BING) genes are there?</td></tr>
-      <tr><td class="case" style="width:1%">L3</td><td>How many touchstone reference perturbagens are there?</td></tr>
-      <tr><td class="case" style="width:1%">L4</td><td>How many gold-quality signatures are there?</td></tr>
-      <tr><td class="case" style="width:1%">L5</td><td>How many exemplar signatures are there?</td></tr>
-      <tr><td class="case" style="width:1%">L6</td><td>How many small-molecule compound perturbagens are there?</td></tr>
-      <tr><td class="case" style="width:1%">L7</td><td>What fraction of genes are directly measured?</td></tr>
-      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Obfuscated values (LINCS, masked codes)</td></tr>
-      <tr><td class="case" style="width:1%">V1</td><td>How many perturbagens are over-expression (trt_oe)?</td></tr>
-      <tr><td class="case" style="width:1%">V2</td><td>How many are ligand treatments (trt_lig)?</td></tr>
-      <tr><td class="case" style="width:1%">V3</td><td>How many are vehicle controls (ctl_vehicle)?</td></tr>
-      <tr><td class="case" style="width:1%">V4</td><td>How many signatures are in the MCF7 cell line?</td></tr>
-      <tr><td class="case" style="width:1%">V5</td><td>How many signatures are in the HEPG2 cell line?</td></tr>
-      <tr><td class="case" style="width:1%">V6</td><td>How many signatures are in the PC3 cell line?</td></tr>
-      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Join grain / structural (LINCS)</td></tr>
-      <tr><td class="case" style="width:1%">HZ2</td><td>Join the metrics table to the signatures on the perturbagen key; what is the mean of the metric across the joined rows?</td></tr>
-      <tr><td class="case" style="width:1%">HZ3</td><td>Inner-join instances to the perturbagen registry; how many instance rows are dropped because the key is absent?</td></tr>
-      <tr><td class="case" style="width:1%">HZ4</td><td>How many distinct perturbagens are in the registry?</td></tr>
-      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Zero- / sentinel-as-missing (LINCS &amp; TCGA)</td></tr>
-      <tr><td class="case" style="width:1%">HZ1</td><td>What is the mean of the metric, where &minus;666 is a sentinel for missing?</td></tr>
-      <tr><td class="case" style="width:1%">Z1</td><td>What is the mean expression of gene SLC4A1 across the tumor samples?</td></tr>
-      <tr><td class="case" style="width:1%">Z2</td><td>What is the mean expression of gene SLC7A3 across the tumor samples?</td></tr>
-      <tr><td class="case" style="width:1%">Z3</td><td>What is the mean expression of gene SLC24A2 across the tumor samples?</td></tr>
-      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Missing table (LINCS)</td></tr>
-      <tr><td class="case" style="width:1%">M5</td><td>What is the mean differential expression across all measured genes and signatures?</td></tr>
+      <tr><td colspan="4" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Conventions (CDISC ADaM)</td></tr>
+      <tr><td class="case" style="width:1%">C1</td><td>How many subjects had an event versus were censored?</td><td style="text-align:center"><span class="tag pass">solved</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td class="case" style="width:1%">C2</td><td>What is the median time to event, over subjects who had the event?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td class="case" style="width:1%">C3</td><td>How many subjects discontinued the study because of an adverse event?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td class="case" style="width:1%">C4</td><td>How many lab records fall outside the normal reference range?</td><td style="text-align:center"><span class="tag pass">solved</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td class="case" style="width:1%">C5</td><td>How many analysis records does the lab dataset contain?</td><td style="text-align:center"><span class="tag pass">solved</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td class="case" style="width:1%">H2</td><td>What is the median survival time?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td class="case" style="width:1%">D1</td><td>What is the mean ADAS-Cog change from baseline at Week 24 for the primary efficacy analysis, per arm?</td><td style="text-align:center"><span class="tag pass">solved</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td colspan="4" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Obfuscated columns (LINCS, masked headers)</td></tr>
+      <tr><td class="case" style="width:1%">L1</td><td>How many landmark genes are directly measured?</td><td style="text-align:center"><span class="tag pass">solved</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td class="case" style="width:1%">L2</td><td>How many best-inferred (BING) genes are there?</td><td style="text-align:center"><span class="tag pass">solved</span></td><td style="text-align:center"><span class="tag brk">failed</span></td></tr>
+      <tr><td class="case" style="width:1%">L3</td><td>How many touchstone reference perturbagens are there?</td><td style="text-align:center"><span class="tag pass">solved</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td class="case" style="width:1%">L4</td><td>How many gold-quality signatures are there?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag brk">failed</span></td></tr>
+      <tr><td class="case" style="width:1%">L5</td><td>How many exemplar signatures are there?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag brk">failed</span></td></tr>
+      <tr><td class="case" style="width:1%">L6</td><td>How many small-molecule compound perturbagens are there?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag brk">failed</span></td></tr>
+      <tr><td class="case" style="width:1%">L7</td><td>What fraction of genes are directly measured?</td><td style="text-align:center"><span class="tag pass">solved</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td colspan="4" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Obfuscated values (LINCS, masked codes)</td></tr>
+      <tr><td class="case" style="width:1%">V1</td><td>How many perturbagens are over-expression (trt_oe)?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag brk">failed</span></td></tr>
+      <tr><td class="case" style="width:1%">V2</td><td>How many are ligand treatments (trt_lig)?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag brk">failed</span></td></tr>
+      <tr><td class="case" style="width:1%">V3</td><td>How many are vehicle controls (ctl_vehicle)?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag na">&mdash;</span></td></tr>
+      <tr><td class="case" style="width:1%">V4</td><td>How many signatures are in the MCF7 cell line?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag brk">failed</span></td></tr>
+      <tr><td class="case" style="width:1%">V5</td><td>How many signatures are in the HEPG2 cell line?</td><td style="text-align:center"><span class="tag part">near</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td class="case" style="width:1%">V6</td><td>How many signatures are in the PC3 cell line?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag na">&mdash;</span></td></tr>
+      <tr><td colspan="4" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Join grain / structural (LINCS)</td></tr>
+      <tr><td class="case" style="width:1%">HZ2</td><td>Join the metrics table to the signatures on the perturbagen key; what is the mean of the metric across the joined rows?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag brk">failed</span></td></tr>
+      <tr><td class="case" style="width:1%">HZ3</td><td>Inner-join instances to the perturbagen registry; how many instance rows are dropped because the key is absent?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag pass">solved</span></td></tr>
+      <tr><td class="case" style="width:1%">HZ4</td><td>How many distinct perturbagens are in the registry?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag na">&mdash;</span></td></tr>
+      <tr><td colspan="4" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Zero- / sentinel-as-missing (LINCS &amp; TCGA)</td></tr>
+      <tr><td class="case" style="width:1%">HZ1</td><td>What is the mean of the metric, where &minus;666 is a sentinel for missing?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag na">&mdash;</span></td></tr>
+      <tr><td class="case" style="width:1%">Z1</td><td>What is the mean expression of gene SLC4A1 across the tumor samples?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag na">not found</span></td></tr>
+      <tr><td class="case" style="width:1%">Z2</td><td>What is the mean expression of gene SLC7A3 across the tumor samples?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag brk">failed</span></td></tr>
+      <tr><td class="case" style="width:1%">Z3</td><td>What is the mean expression of gene SLC24A2 across the tumor samples?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag brk">failed</span></td></tr>
+      <tr><td colspan="4" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Missing table (LINCS)</td></tr>
+      <tr><td class="case" style="width:1%">M5</td><td>What is the mean differential expression across all measured genes and signatures?</td><td style="text-align:center"><span class="tag brk">failed</span></td><td style="text-align:center"><span class="tag brk">failed</span></td></tr>
     </tbody>
   </table></div>
 
