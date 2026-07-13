@@ -131,7 +131,7 @@
   <p class="lede">We ran two open biomedical AI agents head-to-head &mdash; <b>Biomni</b> and <b>CellVoyager</b> &mdash; on blind data-quality questions over real biomedical datasets: CDISC clinical trials, LINCS and TCGA. Three more agents (MEDEA, OmicsClaw, K-Dense) could not be run across the full task; see Method. We used <b>Natural Joints</b> to find the traps in that data and to judge, for each, whether a correct answer can be recovered or the data is missing.</p>
 
   <h2><span class="num">01</span>Method</h2>
-  <p>Two agents ran <b>every</b> family and anchor this study: <b>Biomni</b> (SNAP, Stanford) and <b>CellVoyager</b> (Zou lab, Stanford). Both execute locally on the same CSV files and answer the same blind analyst questions on <span class="mono">gemini-3.1-pro</span>, with a <span class="mono">gemini-2.5-pro</span> reference. The other three agents could not be evaluated across the taxonomy and are mentioned only for context: <b>MEDEA</b> refuses masked or anonymized data (and declined the plain gene-expression questions too), <b>OmicsClaw</b> fails to run on gemini-3.1, and <b>K-Dense</b>'s Claude executor was limited to the CDISC subset. On a single-cell baseline of well-known pitfalls (pseudoreplication, batch confound, QC contamination) both agents pass &mdash; the failures below are signal, not general incompetence.</p>
+  <p>Two agents ran <b>every</b> family and anchor this study: <b>Biomni</b> (SNAP, Stanford) and <b>CellVoyager</b> (Zou lab, Stanford). Both execute locally on the same CSV files, answer the same blind analyst questions, and run on <span class="mono">gemini-3.1-pro</span> &mdash; one run each, so the numbers carry run-to-run variance. The other three agents could not be evaluated across the taxonomy and are mentioned only for context: <b>MEDEA</b> refuses masked or anonymized data (and declined the plain gene-expression questions too), <b>OmicsClaw</b> fails to run on gemini-3.1, and <b>K-Dense</b>'s Claude executor was limited to the CDISC subset. On a single-cell baseline of well-known pitfalls (pseudoreplication, batch confound, QC contamination) both agents pass &mdash; the failures below are signal, not general incompetence.</p>
 
   <h2><span class="num">02</span>How Natural Joints built the benchmark</h2>
   <p>Natural Joints sourced the traps and verified, for each question, whether it can be answered from the delivered data or the data is missing.</p>
@@ -143,18 +143,17 @@
       <tr><td class="case">0 &middot; Baseline pitfalls</td><td>known statistical pitfalls</td><td class="mono" style="font-size:12px">pseudoreplication: test donors, not cells</td><td>determinate</td><td><span class="tag na">control</span></td></tr>
       <tr><td class="case">1 &middot; Conventions</td><td>data is present, agent applies the wrong domain rule</td><td class="mono" style="font-size:12px">"median survival" means Kaplan&ndash;Meier</td><td>determinate value</td><td><span class="tag pass">&#10003; yes (reasoning)</span></td></tr>
       <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">SEMANTIC GROUNDING &mdash; meaning lives outside the delivered data</td></tr>
-      <tr><td class="case">2 &middot; Obfuscated columns</td><td>column headers masked to opaque codes</td><td class="mono" style="font-size:12px">masked header <code>flag_b1</code> = landmark-gene flag</td><td>determinate if recoverable</td><td><span class="tag part">&#9679; partial (self-recoverable)</span></td></tr>
-      <tr><td class="case">3 &middot; Obfuscated values</td><td>category / entity values masked to opaque codes</td><td class="mono" style="font-size:12px">which masked code is the MCF7 cell line</td><td>determinate with the dictionary</td><td><span class="tag brk">&#9679; no</span></td></tr>
-      <tr><td class="case">4 &middot; Join grain / structural</td><td>fan-out, dangling foreign key, ambiguous grain</td><td class="mono" style="font-size:12px">a one-to-many join inflates a per-entity mean</td><td>determinate value</td><td><span class="tag brk">&#9679; no</span></td></tr>
-      <tr><td class="case">5 &middot; Zero- / sentinel-as-missing</td><td>dropout zeros or sentinel codes that secretly mean "missing"</td><td class="mono" style="font-size:12px">53% of a gene's values are dropout zeros; &minus;666 = missing</td><td>determinate value</td><td><span class="tag brk">&#9679; no</span></td></tr>
-      <tr><td class="case">6 &middot; Missing table</td><td>a table absent from the delivery</td><td class="mono" style="font-size:12px">the core expression matrix was never delivered</td><td><b>inconclusive &mdash; flag it, don't answer</b></td><td><span class="tag brk">&#9679; no</span></td></tr>
+      <tr><td class="case">2 &middot; No-signal column names</td><td>column headers are opaque codes, no meaning</td><td class="mono" style="font-size:12px">header <code>flag_b1</code> = landmark-gene flag</td><td>determinate if recoverable</td><td><span class="tag part">&#9679; partial (agent-specific)</span></td></tr>
+      <tr><td class="case">3 &middot; Structural</td><td>fan-out join, dangling foreign key, ambiguous grain</td><td class="mono" style="font-size:12px">a one-to-many join inflates a per-entity mean</td><td>determinate value</td><td><span class="tag brk">&#9679; no</span></td></tr>
+      <tr><td class="case">4 &middot; Missing data</td><td>values or a whole table are silently absent (dropout zeros, sentinel codes, a table left out)</td><td class="mono" style="font-size:12px">53% dropout zeros; &minus;666 = missing; the matrix was never delivered</td><td>exclude the missing values; if a table is gone, flag it</td><td><span class="tag brk">&#9679; no</span></td></tr>
+      <tr><td class="case">5 &middot; Private coding</td><td>categorical values &mdash; groups, disease, status, cell lines &mdash; use private in-house codes, not standard names</td><td class="mono" style="font-size:12px">a code stands for the MCF7 cell line or the trt_oe treatment type</td><td>determinate with the dictionary</td><td><span class="tag brk">&#9679; no</span></td></tr>
     </tbody>
   </table></div>
 
   <h2><span class="num">04</span>Results</h2>
-  <p>Biomni versus CellVoyager, by family. Bar height is the share of a family's cases each agent answered correctly on <span class="mono">gemini-3.1-pro</span> (gridlines at 25 / 50 / 75 / 100%). Both clear the convention tier; both fall off the grounding tier.</p>
+  <p>Biomni versus CellVoyager on <span class="mono">gemini-3.1-pro</span>, by family. Bar height is the share of a family's cases answered correctly (gridlines at 25 / 50 / 75 / 100%). Both clear the convention tier; both fall off the grounding tier &mdash; and CellVoyager leads on every family except no-signal columns.</p>
   <style>
-    .bchart{min-width:520px;padding:34px 6px 4px}
+    .bchart{min-width:560px;padding:34px 6px 4px}
     .bcplot{display:flex;gap:14px;align-items:flex-end;height:210px;border-bottom:2px solid var(--border-strong);
       background-image:repeating-linear-gradient(to top,var(--border) 0 1px,transparent 1px 52.5px)}
     .bcfam{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
@@ -168,75 +167,56 @@
     .bckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
   </style>
   <div class="tablewrap"><div class="bchart"><div class="bcplot">
-    <div class="bcfam"><div class="bcbars">
-      <div class="bcbar" style="height:100%;background:var(--accent)"><b>100%</b></div>
-      <div class="bcbar" style="height:67%;background:#E0983C"><b>67%</b></div>
-    </div><div class="bclab">Conventions<small>reasoning</small></div></div>
-    <div class="bcfam"><div class="bcbars">
-      <div class="bcbar" style="height:43%;background:var(--accent)"><b>43%</b></div>
-      <div class="bcbar" style="height:86%;background:#E0983C"><b>86%</b></div>
-    </div><div class="bclab">Obfusc. columns<small>agent-specific</small></div></div>
-    <div class="bcfam"><div class="bcbars">
-      <div class="bcbar" style="height:25%;background:var(--accent)"><b>25%</b></div>
-      <div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div>
-    </div><div class="bclab">Obfusc. values<small>grounding</small></div></div>
-    <div class="bcfam"><div class="bcbars">
-      <div class="bcbar" style="height:50%;background:var(--accent)"><b>50%</b></div>
-      <div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div>
-    </div><div class="bclab">Join grain<small>grounding</small></div></div>
-    <div class="bcfam"><div class="bcbars">
-      <div class="bcbar" style="height:2px;background:var(--accent)"><b>0%</b></div>
-      <div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div>
-    </div><div class="bclab">Zero / sentinel<small>grounding</small></div></div>
-    <div class="bcfam"><div class="bcbars">
-      <div class="bcbar" style="height:2px;background:var(--accent)"><b>0%</b></div>
-      <div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div>
-    </div><div class="bclab">Missing table<small>indeterminate</small></div></div>
+    <div class="bcfam"><div class="bcbars"><div class="bcbar" style="height:100%;background:var(--accent)"><b>100%</b></div><div class="bcbar" style="height:57%;background:#E0983C"><b>57%</b></div></div><div class="bclab">Conventions<small>reasoning</small></div></div>
+    <div class="bcfam"><div class="bcbars"><div class="bcbar" style="height:43%;background:var(--accent)"><b>43%</b></div><div class="bcbar" style="height:57%;background:#E0983C"><b>57%</b></div></div><div class="bclab">No-signal columns<small>agent-specific</small></div></div>
+    <div class="bcfam"><div class="bcbars"><div class="bcbar" style="height:50%;background:var(--accent)"><b>50%</b></div><div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div></div><div class="bclab">Structural<small>grounding</small></div></div>
+    <div class="bcfam"><div class="bcbars"><div class="bcbar" style="height:2px;background:var(--accent)"><b>0%</b></div><div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div></div><div class="bclab">Missing data<small>grounding</small></div></div>
+    <div class="bcfam"><div class="bcbars"><div class="bcbar" style="height:25%;background:var(--accent)"><b>25%</b></div><div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div></div><div class="bclab">Private coding<small>grounding</small></div></div>
   </div></div></div>
   <div class="bckey">
-    <span><i style="background:var(--accent)"></i>CellVoyager <span class="mono" style="font-size:10px">&middot;3.1</span></span>
-    <span><i style="background:#E0983C"></i>Biomni <span class="mono" style="font-size:10px">&middot;2.5</span></span>
+    <span><i style="background:var(--accent)"></i>CellVoyager</span>
+    <span><i style="background:#E0983C"></i>Biomni</span>
+    <span class="mono" style="font-size:11px">both &middot; gemini-3.1-pro, single run</span>
   </div>
-  <p class="sub">Obfuscated columns is the one grounding family that is agent-specific: Biomni decodes masked headers by matching known LINCS landmark counts (86%); CellVoyager recovers fewer than half (43%). Everywhere else in the grounding tier, both collapse. On <b>Missing table</b> no value exists to compute &mdash; the data is inconclusive and the correct response is to flag it &mdash; yet both returned a confident number: models are biased to answer.</p>
+  <p class="sub">No-signal columns is the one grounding family that is agent-specific &mdash; both agents partly decode masked headers by matching known LINCS landmark counts (Biomni 57%, CellVoyager 43%). Everywhere else in the grounding tier, both collapse. On <b>Missing data</b> the correct response is to exclude the hidden-missing values, or to flag a dropped table rather than answer &mdash; but both returned a confident number: models are biased to answer.</p>
 
-  <p class="sub">Every case, every family. Each ground truth was recomputed from raw data; "naive" is the answer a blind analyst returns. Both agents are on <span class="mono">gemini-3.1-pro</span>; &mdash; marks a case an agent was not run on.</p>
+  <p class="sub">Every case, every family, both agents on <span class="mono">gemini-3.1-pro</span>. Each ground truth was recomputed from raw data; "naive" is the answer a blind analyst returns; &mdash; marks a case an agent was not run on. These are single runs and carry variance.</p>
   <div class="tablewrap"><table style="min-width:720px">
     <thead><tr><th>Case</th><th>Correct</th><th>Naive</th><th>Biomni</th><th>CellVoyager</th></tr></thead>
     <tbody>
       <tr><td colspan="5" style="background:var(--pass-bg);color:var(--pass);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">CONVENTIONS &mdash; a stronger model fixes these</td></tr>
       <tr><td class="case">C1<span class="q">event vs censored (CNSR)</span></td><td class="mono">152 / 102</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">152/102</span></td><td><span class="tag pass">152/102</span></td></tr>
-      <tr><td class="case">C2<span class="q">median time-to-event, events only</span></td><td class="mono">27.5</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">27.5</span></td><td><span class="tag pass">27.5</span></td></tr>
-      <tr><td class="case">C3<span class="q">subjects discontinued for an AE</span></td><td class="mono">92</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">92</span></td><td><span class="tag pass">92</span></td></tr>
-      <tr><td class="case">C4<span class="q">lab records out of range (ANRIND N/H)</span></td><td class="mono">189</td><td class="mono" style="color:var(--faint)">0</td><td><span class="tag brk">0</span></td><td><span class="tag pass">189</span></td></tr>
+      <tr><td class="case">C2<span class="q">median time-to-event, events only</span></td><td class="mono">27.5</td><td class="mono" style="color:var(--faint)">40</td><td><span class="tag brk">44</span></td><td><span class="tag pass">27.5</span></td></tr>
+      <tr><td class="case">C3<span class="q">subjects discontinued for an AE</span></td><td class="mono">92</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">18</span></td><td><span class="tag pass">92</span></td></tr>
+      <tr><td class="case">C4<span class="q">lab records out of range (ANRIND N/H)</span></td><td class="mono">189</td><td class="mono" style="color:var(--faint)">0</td><td><span class="tag pass">189</span></td><td><span class="tag pass">189</span></td></tr>
       <tr><td class="case">C5<span class="q">analysis-record count (ANL01FL)</span></td><td class="mono">5490</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">5490</span></td><td><span class="tag pass">5490</span></td></tr>
-      <tr><td class="case">H2<span class="q">Kaplan&ndash;Meier median survival</span></td><td class="mono">51</td><td class="mono" style="color:var(--faint)">40</td><td><span class="tag brk">55</span></td><td><span class="tag pass">51</span></td></tr>
+      <tr><td class="case">H2<span class="q">Kaplan&ndash;Meier median survival</span></td><td class="mono">51</td><td class="mono" style="color:var(--faint)">40</td><td><span class="tag brk">42</span></td><td><span class="tag pass">51</span></td></tr>
       <tr><td class="case">D1<span class="q">efficacy-population change (EFFFL)</span></td><td class="mono">2.545</td><td class="mono" style="color:var(--faint)">2.34</td><td><span class="tag pass">2.545</span></td><td><span class="tag pass">2.545</span></td></tr>
-      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">OBFUSCATED COLUMNS &mdash; masked headers, agent-specific</td></tr>
+      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">NO-SIGNAL COLUMN NAMES &mdash; opaque headers, agent-specific</td></tr>
       <tr><td class="case">L1<span class="q">landmark-gene flag</span></td><td class="mono">978</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">978</span></td><td><span class="tag pass">978</span></td></tr>
       <tr><td class="case">L2<span class="q">BING gene set</span></td><td class="mono">10174</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">10174</span></td><td><span class="tag brk">wrong</span></td></tr>
       <tr><td class="case">L3<span class="q">touchstone perturbagens</span></td><td class="mono">21577</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">21577</span></td><td><span class="tag pass">21577</span></td></tr>
-      <tr><td class="case">L4<span class="q">gold signatures</span></td><td class="mono">260643</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">260643</span></td><td><span class="tag brk">0</span></td></tr>
-      <tr><td class="case">L5<span class="q">exemplar signatures</span></td><td class="mono">297705</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">297705</span></td><td><span class="tag brk">miss</span></td></tr>
-      <tr><td class="case">L6<span class="q">compound perturbagens</span></td><td class="mono">20413</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">18493</span></td><td><span class="tag brk">miss</span></td></tr>
+      <tr><td class="case">L4<span class="q">gold signatures</span></td><td class="mono">260643</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">304523</span></td><td><span class="tag brk">0</span></td></tr>
+      <tr><td class="case">L5<span class="q">exemplar signatures</span></td><td class="mono">297705</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">163539</span></td><td><span class="tag brk">miss</span></td></tr>
+      <tr><td class="case">L6<span class="q">compound perturbagens</span></td><td class="mono">20413</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">25200</span></td><td><span class="tag brk">miss</span></td></tr>
       <tr><td class="case">L7<span class="q">measured-gene fraction</span></td><td class="mono">0.079</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">0.0793</span></td><td><span class="tag pass">0.0793</span></td></tr>
-      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">OBFUSCATED VALUES &mdash; masked codes, unrecoverable without a dictionary</td></tr>
-      <tr><td class="case">V1<span class="q">overexpression (trt_oe)</span></td><td class="mono">3492</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">5110</span></td><td><span class="tag brk">3113</span></td></tr>
-      <tr><td class="case">V2<span class="q">ligand (trt_lig)</span></td><td class="mono">622</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">315</span></td><td><span class="tag brk">0</span></td></tr>
-      <tr><td class="case">V3<span class="q">vehicle control (ctl_vehicle)</span></td><td class="mono">3</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">3807</span></td><td><span class="tag na">&mdash;</span></td></tr>
-      <tr><td class="case">V4<span class="q">MCF7 cell line</span></td><td class="mono">63367</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">42398</span></td><td><span class="tag brk">0</span></td></tr>
-      <tr><td class="case">V5<span class="q">HEPG2 cell line</span></td><td class="mono">28195</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag part">27831</span></td><td><span class="tag pass">28195</span></td></tr>
-      <tr><td class="case">V6<span class="q">PC3 cell line</span></td><td class="mono">58945</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">1383</span></td><td><span class="tag na">&mdash;</span></td></tr>
-      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">JOIN GRAIN / STRUCTURAL</td></tr>
+      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">STRUCTURAL &mdash; join grain, dangling keys</td></tr>
       <tr><td class="case">HZ2<span class="q">one-to-many join inflates a mean</span></td><td class="mono">0.2494</td><td class="mono" style="color:var(--faint)">0.3007</td><td><span class="tag brk">0.3007</span></td><td><span class="tag brk">0.3007</span></td></tr>
       <tr><td class="case">HZ3<span class="q">dangling FK drops rows</span></td><td class="mono">10726</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">3675</span></td><td><span class="tag pass">10726</span></td></tr>
-      <tr><td class="case">HZ4<span class="q">true grain (distinct keys)</span></td><td class="mono">51383</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">50147</span></td><td><span class="tag na">&mdash;</span></td></tr>
-      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">ZERO- / SENTINEL-AS-MISSING</td></tr>
-      <tr><td class="case">HZ1<span class="q">sentinel &minus;666 = missing</span></td><td class="mono">0.4528</td><td class="mono" style="color:var(--faint)">&minus;155</td><td><span class="tag pass">0.4528</span></td><td><span class="tag na">&mdash;</span></td></tr>
+      <tr><td class="case">HZ4<span class="q">true grain (distinct keys)</span></td><td class="mono">51383</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">8140</span></td><td><span class="tag na">&mdash;</span></td></tr>
+      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">MISSING DATA &mdash; values or a table silently absent</td></tr>
       <tr><td class="case">Z1<span class="q">dropout zeros, 69% (SLC4A1)</span></td><td class="mono">0.0532</td><td class="mono" style="color:var(--faint)">0.0164</td><td><span class="tag brk">0.0164</span></td><td><span class="tag na">not found</span></td></tr>
       <tr><td class="case">Z2<span class="q">dropout zeros, 53% (SLC7A3)</span></td><td class="mono">0.1085</td><td class="mono" style="color:var(--faint)">0.0511</td><td><span class="tag brk">0.0511</span></td><td><span class="tag brk">0.0511</span></td></tr>
       <tr><td class="case">Z3<span class="q">dropout zeros, 35% (SLC24A2)</span></td><td class="mono">0.2058</td><td class="mono" style="color:var(--faint)">0.1336</td><td><span class="tag brk">0.1336</span></td><td><span class="tag brk">0.1336</span></td></tr>
-      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">MISSING TABLE &mdash; data inconclusive, correct response is to flag it</td></tr>
-      <tr><td class="case">M5<span class="q">core expression matrix absent</span></td><td class="mono">flag missing</td><td class="mono" style="color:var(--faint)">any number</td><td><span class="tag brk">&minus;282</span></td><td><span class="tag brk">41.34</span></td></tr>
+      <tr><td class="case">HZ1<span class="q">sentinel &minus;666 = missing</span></td><td class="mono">0.4528</td><td class="mono" style="color:var(--faint)">&minus;155</td><td><span class="tag brk">2</span></td><td><span class="tag na">&mdash;</span></td></tr>
+      <tr><td class="case">M5<span class="q">core expression matrix left out</span></td><td class="mono">flag missing</td><td class="mono" style="color:var(--faint)">any number</td><td><span class="tag brk">&minus;282</span></td><td><span class="tag brk">41.34</span></td></tr>
+      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">PRIVATE CODING &mdash; in-house value codes, unrecoverable without a dictionary</td></tr>
+      <tr><td class="case">V1<span class="q">overexpression (trt_oe)</span></td><td class="mono">3492</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">5110</span></td><td><span class="tag brk">3113</span></td></tr>
+      <tr><td class="case">V2<span class="q">ligand (trt_lig)</span></td><td class="mono">622</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">315</span></td><td><span class="tag brk">0</span></td></tr>
+      <tr><td class="case">V3<span class="q">vehicle control (ctl_vehicle)</span></td><td class="mono">3</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">18</span></td><td><span class="tag na">&mdash;</span></td></tr>
+      <tr><td class="case">V4<span class="q">MCF7 cell line</span></td><td class="mono">63367</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">42398</span></td><td><span class="tag brk">0</span></td></tr>
+      <tr><td class="case">V5<span class="q">HEPG2 cell line</span></td><td class="mono">28195</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag part">27831</span></td><td><span class="tag pass">28195</span></td></tr>
+      <tr><td class="case">V6<span class="q">PC3 cell line</span></td><td class="mono">58945</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">40994</span></td><td><span class="tag na">&mdash;</span></td></tr>
     </tbody>
   </table></div>
   <div class="legend">
