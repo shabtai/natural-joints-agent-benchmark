@@ -159,7 +159,7 @@
     <thead><tr><th>Agent</th><th>Conventions</th><th>Obf. columns</th><th>Obf. values</th><th>Join grain</th><th>Zero / sentinel</th><th>Missing table</th></tr></thead>
     <tbody>
       <tr><td class="case">CellVoyager<span class="note">gemini-3.1</span></td>
-        <td><span class="tag pass">100%</span></td><td><span class="tag brk">29%</span></td><td><span class="tag brk">25%</span></td><td><span class="tag part">50%</span></td><td><span class="tag brk">0%</span></td><td><span class="tag brk">0%</span></td></tr>
+        <td><span class="tag pass">100%</span></td><td><span class="tag part">43%</span></td><td><span class="tag brk">25%</span></td><td><span class="tag part">50%</span></td><td><span class="tag brk">0%</span></td><td><span class="tag brk">0%</span></td></tr>
       <tr><td class="case">Biomni<span class="note">gemini-2.5</span></td>
         <td><span class="tag part">67%</span></td><td><span class="tag pass">86%</span></td><td><span class="tag brk">25%</span></td><td><span class="tag brk">0%</span></td><td><span class="tag brk">0%</span></td><td><span class="tag brk">0%</span></td></tr>
       <tr><td class="case">MEDEA<span class="note">gemini-3.1</span></td>
@@ -170,7 +170,7 @@
         <td><span class="tag pass">75%</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td></tr>
     </tbody>
   </table></div>
-  <p class="sub"><b>refuses</b> = MEDEA declines the task ("I cannot help with that") on every grounding family, masked or not. <b>n/a &middot; 3.1</b> = OmicsClaw cannot run on gemini-3.1 (a tool-calling API error on every case) and hangs on masked LINCS at 2.5-pro. <b>CDISC only</b> = K-Dense's Claude executor was run on the clinical-trial subset. Obfuscated columns is agent-specific: Biomni decodes masked headers by matching known LINCS landmark counts (86%); CellVoyager mostly cannot (29%). On <b>Missing table</b> no value exists to compute &mdash; the data is inconclusive, and the correct response is to flag it &mdash; yet every agent that ran it returned a confident number: models are biased to answer.</p>
+  <p class="sub"><b>refuses</b> = MEDEA declines the task ("I cannot help with that") on every grounding family, masked or not. <b>n/a &middot; 3.1</b> = OmicsClaw cannot run on gemini-3.1 (a tool-calling API error on every case) and hangs on masked LINCS at 2.5-pro. <b>CDISC only</b> = K-Dense's Claude executor was run on the clinical-trial subset. Obfuscated columns is agent-specific: Biomni decodes masked headers by matching known LINCS landmark counts (86%); CellVoyager recovers fewer than half (43%). On <b>Missing table</b> no value exists to compute &mdash; the data is inconclusive, and the correct response is to flag it &mdash; yet every agent that ran it returned a confident number: models are biased to answer.</p>
 
   <style>
     .bchart{min-width:720px;padding:34px 6px 4px}
@@ -198,7 +198,7 @@
       <div class="bcbar" style="height:75%;background:#E07AA0"><b>75%</b></div>
     </div><div class="bclab">Conventions<small>reasoning</small></div></div>
     <div class="bcfam"><div class="bcbars">
-      <div class="bcbar" style="height:29%;background:var(--accent)"><b>29%</b></div>
+      <div class="bcbar" style="height:43%;background:var(--accent)"><b>43%</b></div>
       <div class="bcbar" style="height:86%;background:#E0983C"><b>86%</b></div>
     </div><div class="bclab">Obfusc. columns<small>agent-specific</small></div></div>
     <div class="bcfam"><div class="bcbars">
