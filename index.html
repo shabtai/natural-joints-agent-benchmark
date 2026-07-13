@@ -128,15 +128,13 @@
 
   <div class="eyebrow">Natural Joints &middot; Agent benchmark &middot; July 2026</div>
   <h1>Where biomedical data agents fail: a trap taxonomy</h1>
-  <p class="lede">We benchmarked five open biomedical AI agents &mdash; <b>Biomni</b>, <b>CellVoyager</b>, <b>MEDEA</b>, <b>OmicsClaw</b> and <b>K-Dense</b> &mdash; on blind data-quality questions over real biomedical datasets: CDISC clinical trials, LINCS, TCGA and single-cell atlases. We used <b>Natural Joints</b> to find the traps in that data and to judge, for each, whether a correct answer can be recovered or the data is simply missing. The result reduces to one line: a stronger model fixes convention errors and none of the semantic-grounding errors.</p>
+  <p class="lede">We ran two open biomedical AI agents head-to-head &mdash; <b>Biomni</b> and <b>CellVoyager</b> &mdash; on blind data-quality questions over real biomedical datasets: CDISC clinical trials, LINCS and TCGA. Three more agents (MEDEA, OmicsClaw, K-Dense) could not be run across the full task; see Method. We used <b>Natural Joints</b> to find the traps in that data and to judge, for each, whether a correct answer can be recovered or the data is missing.</p>
 
   <h2><span class="num">01</span>Method</h2>
-  <p>Each agent runs locally on the same CSV files and answers the same blind analyst questions; the scaffold is the only variable. Four agents share a Gemini backbone (<span class="mono">gemini-2.5-pro</span>, retested on <span class="mono">gemini-3.1-pro</span>); K-Dense's code executor is Claude Opus 4.8, a cross-family control. On a single-cell baseline of well-known pitfalls (pseudoreplication, batch confound, QC contamination) every agent passes &mdash; the failures below are signal, not general incompetence.</p>
+  <p>Two agents ran <b>every</b> family and anchor this study: <b>Biomni</b> (SNAP, Stanford) and <b>CellVoyager</b> (Zou lab, Stanford). Both execute locally on the same CSV files and answer the same blind analyst questions on <span class="mono">gemini-3.1-pro</span>, with a <span class="mono">gemini-2.5-pro</span> reference. The other three agents could not be evaluated across the taxonomy and are mentioned only for context: <b>MEDEA</b> refuses masked or anonymized data (and declined the plain gene-expression questions too), <b>OmicsClaw</b> fails to run on gemini-3.1, and <b>K-Dense</b>'s Claude executor was limited to the CDISC subset. On a single-cell baseline of well-known pitfalls (pseudoreplication, batch confound, QC contamination) both agents pass &mdash; the failures below are signal, not general incompetence.</p>
 
   <h2><span class="num">02</span>How Natural Joints built the benchmark</h2>
-  <p>Natural Joints profiles raw tables and alerts on <b>nonconventional usage</b>: a coded field read literally, a one-to-many join that inflates a per-entity mean, a column of zeros that behaves like missing data, a foreign key with no parent table, a table absent from the delivery. We used those alerts to locate real traps in the datasets above and converted each into a blind question with a known answer.</p>
-  <p>For every candidate Natural Joints makes a second judgment: <b>whether the correct answer is recoverable from what was delivered, or not.</b> A masked value is recoverable &mdash; the layer carries the value map. A dropped table is not &mdash; the correct answer is "this is missing." That determinate / indeterminate split is the first axis of the taxonomy.</p>
-  <p><b>We verified that Natural Joints flags every trap family in the benchmark.</b> Masked columns and values surface as low-confidence reference pointers; the fan-out and dangling-key joins raise structural alerts; the dropout-zero columns score 0.88&ndash;0.94 on its zero-as-missing detector, and the opposite on a control gene where zeros are biological; the dropped table raises a completeness alert. Each ground truth was then recomputed independently from raw data.</p>
+  <p>Natural Joints sourced the traps and verified, for each question, whether it can be answered from the delivered data or the data is missing.</p>
 
   <h2><span class="num">03</span>The taxonomy</h2>
   <div class="tablewrap"><table style="min-width:880px">
@@ -154,48 +152,25 @@
   </table></div>
 
   <h2><span class="num">04</span>Results</h2>
-  <p>Every agent on every family. Cells are the share of that family's cases answered correctly on the agent's working backbone; no cell is left blank &mdash; where an agent could not run, the reason is stated.</p>
-  <div class="tablewrap"><table style="min-width:860px">
-    <thead><tr><th>Agent</th><th>Conventions</th><th>Obf. columns</th><th>Obf. values</th><th>Join grain</th><th>Zero / sentinel</th><th>Missing table</th></tr></thead>
-    <tbody>
-      <tr><td class="case">CellVoyager<span class="note">gemini-3.1</span></td>
-        <td><span class="tag pass">100%</span></td><td><span class="tag part">43%</span></td><td><span class="tag brk">25%</span></td><td><span class="tag part">50%</span></td><td><span class="tag brk">0%</span></td><td><span class="tag brk">0%</span></td></tr>
-      <tr><td class="case">Biomni<span class="note">gemini-2.5</span></td>
-        <td><span class="tag part">67%</span></td><td><span class="tag pass">86%</span></td><td><span class="tag brk">25%</span></td><td><span class="tag brk">0%</span></td><td><span class="tag brk">0%</span></td><td><span class="tag brk">0%</span></td></tr>
-      <tr><td class="case">MEDEA<span class="note">gemini-3.1</span></td>
-        <td><span class="tag pass">83%</span></td><td><span class="tag na">refuses</span></td><td><span class="tag na">refuses</span></td><td><span class="tag na">refuses</span></td><td><span class="tag na">refuses</span></td><td><span class="tag na">refuses</span></td></tr>
-      <tr><td class="case">OmicsClaw<span class="note">gemini-2.5</span></td>
-        <td><span class="tag part">50%</span></td><td><span class="tag na">n/a &middot; 3.1</span></td><td><span class="tag na">n/a &middot; 3.1</span></td><td><span class="tag na">n/a &middot; 3.1</span></td><td><span class="tag na">n/a &middot; 3.1</span></td><td><span class="tag na">n/a &middot; 3.1</span></td></tr>
-      <tr><td class="case">K-Dense<span class="note">Claude Opus 4.8</span></td>
-        <td><span class="tag pass">75%</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td><td><span class="tag na">CDISC only</span></td></tr>
-    </tbody>
-  </table></div>
-  <p class="sub"><b>refuses</b> = MEDEA declines the task ("I cannot help with that") on every grounding family, masked or not. <b>n/a &middot; 3.1</b> = OmicsClaw cannot run on gemini-3.1 (a tool-calling API error on every case) and hangs on masked LINCS at 2.5-pro. <b>CDISC only</b> = K-Dense's Claude executor was run on the clinical-trial subset. Obfuscated columns is agent-specific: Biomni decodes masked headers by matching known LINCS landmark counts (86%); CellVoyager recovers fewer than half (43%). On <b>Missing table</b> no value exists to compute &mdash; the data is inconclusive, and the correct response is to flag it &mdash; yet every agent that ran it returned a confident number: models are biased to answer.</p>
-
+  <p>Biomni versus CellVoyager, by family. Bar height is the share of a family's cases each agent answered correctly on <span class="mono">gemini-3.1-pro</span> (gridlines at 25 / 50 / 75 / 100%). Both clear the convention tier; both fall off the grounding tier.</p>
   <style>
-    .bchart{min-width:720px;padding:34px 6px 4px}
+    .bchart{min-width:520px;padding:34px 6px 4px}
     .bcplot{display:flex;gap:14px;align-items:flex-end;height:210px;border-bottom:2px solid var(--border-strong);
       background-image:repeating-linear-gradient(to top,var(--border) 0 1px,transparent 1px 52.5px)}
     .bcfam{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
-    .bcbars{display:flex;gap:4px;align-items:flex-end;height:210px;width:100%;justify-content:center}
-    .bcbar{width:15px;border-radius:3px 3px 0 0;min-height:2px;position:relative}
+    .bcbars{display:flex;gap:5px;align-items:flex-end;height:210px;width:100%;justify-content:center}
+    .bcbar{width:20px;border-radius:3px 3px 0 0;min-height:2px;position:relative}
     .bcbar b{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--ink)}
-    .bcbar.na{width:11px;min-height:15px;background:repeating-linear-gradient(45deg,var(--border),var(--border) 3px,transparent 3px,transparent 6px)!important}
-    .bcbar.na b{color:var(--faint);font-size:9px;top:-14px}
     .bclab{font-size:11px;font-weight:700;text-align:center;margin-top:10px;line-height:1.2}
     .bclab small{display:block;color:var(--faint);font-family:var(--font-mono);font-size:9px;font-weight:600;text-transform:uppercase;margin-top:2px;letter-spacing:.03em}
     .bckey{display:flex;gap:15px;flex-wrap:wrap;font-size:12.5px;margin:14px 0 2px;padding-left:6px;color:var(--muted)}
     .bckey span{display:inline-flex;align-items:center;gap:6px}
     .bckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
   </style>
-  <p class="sub" style="margin-top:22px"><b>Bar height = % of a family's cases the agent answered correctly</b> on <span class="mono">gemini-3.1-pro</span> (dashed gridlines at 25 / 50 / 75 / 100%). Every agent clears the convention tier; every agent that reaches the grounding families collapses toward the floor.</p>
   <div class="tablewrap"><div class="bchart"><div class="bcplot">
     <div class="bcfam"><div class="bcbars">
       <div class="bcbar" style="height:100%;background:var(--accent)"><b>100%</b></div>
       <div class="bcbar" style="height:67%;background:#E0983C"><b>67%</b></div>
-      <div class="bcbar" style="height:83%;background:#5B9BD5"><b>83%</b></div>
-      <div class="bcbar" style="height:50%;background:#A579C9"><b>50%</b></div>
-      <div class="bcbar" style="height:75%;background:#E07AA0"><b>75%</b></div>
     </div><div class="bclab">Conventions<small>reasoning</small></div></div>
     <div class="bcfam"><div class="bcbars">
       <div class="bcbar" style="height:43%;background:var(--accent)"><b>43%</b></div>
@@ -203,13 +178,11 @@
     </div><div class="bclab">Obfusc. columns<small>agent-specific</small></div></div>
     <div class="bcfam"><div class="bcbars">
       <div class="bcbar" style="height:25%;background:var(--accent)"><b>25%</b></div>
-      <div class="bcbar" style="height:25%;background:#E0983C"><b>25%</b></div>
-      <div class="bcbar na" title="MEDEA refuses masked data"><b>ref</b></div>
+      <div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div>
     </div><div class="bclab">Obfusc. values<small>grounding</small></div></div>
     <div class="bcfam"><div class="bcbars">
       <div class="bcbar" style="height:50%;background:var(--accent)"><b>50%</b></div>
       <div class="bcbar" style="height:2px;background:#E0983C"><b>0%</b></div>
-      <div class="bcbar na" title="MEDEA refuses masked data"><b>ref</b></div>
     </div><div class="bclab">Join grain<small>grounding</small></div></div>
     <div class="bcfam"><div class="bcbars">
       <div class="bcbar" style="height:2px;background:var(--accent)"><b>0%</b></div>
@@ -221,52 +194,101 @@
     </div><div class="bclab">Missing table<small>indeterminate</small></div></div>
   </div></div></div>
   <div class="bckey">
-    <span><i style="background:var(--accent)"></i>CellVoyager <span class="mono" style="font-size:10px">·3.1</span></span>
-    <span><i style="background:#5B9BD5"></i>MEDEA <span class="mono" style="font-size:10px">·3.1</span></span>
-    <span><i style="background:#E07AA0"></i>K-Dense <span class="mono" style="font-size:10px">·Claude</span></span>
-    <span><i style="background:#E0983C"></i>Biomni <span class="mono" style="font-size:10px">·2.5</span></span>
-    <span><i style="background:#A579C9"></i>OmicsClaw <span class="mono" style="font-size:10px">·2.5</span></span>
-    <span><span class="mono" style="font-size:11px">ref</span> = MEDEA refuses</span>
+    <span><i style="background:var(--accent)"></i>CellVoyager <span class="mono" style="font-size:10px">&middot;3.1</span></span>
+    <span><i style="background:#E0983C"></i>Biomni <span class="mono" style="font-size:10px">&middot;2.5</span></span>
   </div>
-  <p class="sub">The chart plots the agents that produced results per family (bars omitted where an agent refuses or cannot run &mdash; see the matrix above). The cliff from the convention tier to the grounding tier is the whole finding.</p>
+  <p class="sub">Obfuscated columns is the one grounding family that is agent-specific: Biomni decodes masked headers by matching known LINCS landmark counts (86%); CellVoyager recovers fewer than half (43%). Everywhere else in the grounding tier, both collapse. On <b>Missing table</b> no value exists to compute &mdash; the data is inconclusive and the correct response is to flag it &mdash; yet both returned a confident number: models are biased to answer.</p>
 
-  <p class="sub">Per-case detail for the grounding families, each ground truth recomputed from raw data. "Naive" is the answer a blind analyst returns; agent columns are on <span class="mono">gemini-3.1-pro</span>.</p>
-
-  <div class="tablewrap"><table style="min-width:820px">
-    <thead><tr><th>Trap &middot; dataset</th><th>Correct</th><th>Naive answer</th><th>Biomni</th><th>CellVoyager</th><th>MEDEA</th></tr></thead>
+  <p class="sub">Every case, every family. Each ground truth was recomputed from raw data; "naive" is the answer a blind analyst returns. Both agents are on <span class="mono">gemini-3.1-pro</span>; &mdash; marks a case an agent was not run on.</p>
+  <div class="tablewrap"><table style="min-width:720px">
+    <thead><tr><th>Case</th><th>Correct</th><th>Naive</th><th>Biomni</th><th>CellVoyager</th></tr></thead>
     <tbody>
-      <tr><td colspan="6" style="background:var(--pass-bg);color:var(--pass);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">CONVENTION / METHOD &mdash; fixed by the stronger model</td></tr>
-      <tr><td class="case">C4 &middot; CDISC<span class="q">Lab records out of range (ANRIND codes N/H)</span></td><td class="mono">189</td><td class="mono">0</td>
-        <td><span class="tag brk">BREAK</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag pass">PASS</span></td></tr>
-      <tr><td class="case">H2 &middot; CDISC<span class="q">Median survival = Kaplan-Meier, not naive median</span></td><td class="mono">51</td><td class="mono">40</td>
-        <td><span class="tag brk">BREAK</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span></td></tr>
-      <tr><td class="case">D1 &middot; CDISC<span class="q">Efficacy-population filter (EFFFL) on ADAS-Cog change</span></td><td class="mono">2.545</td><td class="mono">2.34</td>
-        <td><span class="tag pass">FIX</span></td><td><span class="tag pass">PASS</span></td><td><span class="tag brk">BREAK</span></td></tr>
-      <tr><td colspan="6" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">SEMANTIC GROUNDING &mdash; persists on the strongest model</td></tr>
-      <tr><td class="case">V1 &middot; LINCS<span class="q">Map "overexpression (trt_oe)" &rarr; a masked code</span></td><td class="mono">3492</td><td class="mono">gave up</td>
-        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">3113</span></td><td><span class="tag na">refuses</span></td></tr>
-      <tr><td class="case">V2 &middot; LINCS<span class="q">Map "ligand (trt_lig)" &rarr; a masked code</span></td><td class="mono">622</td><td class="mono">135</td>
-        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">0</span></td><td><span class="tag na">refuses</span></td></tr>
-      <tr><td class="case">V4 &middot; LINCS<span class="q">Signatures in cell line "MCF7" (masked)</span></td><td class="mono">63367</td><td class="mono">mode cell</td>
-        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">0</span></td><td><span class="tag na">refuses</span></td></tr>
-      <tr><td class="case">HZ2 &middot; LINCS<span class="q">One-to-many join inflates a per-entity metric mean</span></td><td class="mono">0.2494</td><td class="mono">0.3007</td>
-        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">0.3007 &mdash; merged then averaged</span></td><td><span class="tag na">refuses</span></td></tr>
-      <tr><td class="case">Z2 &middot; TCGA<span class="q">Gene mean with 53% zeros = dropout, exclude them</span></td><td class="mono">0.1085</td><td class="mono">0.0511</td>
-        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">0.0511 &mdash; averaged over the zeros</span></td><td><span class="tag na">refuses</span></td></tr>
-      <tr><td class="case">Z3 &middot; TCGA<span class="q">Same, 35% zeros</span></td><td class="mono">0.2058</td><td class="mono">0.1336</td>
-        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">0.1336</span></td><td><span class="tag na">refuses</span></td></tr>
-      <tr><td class="case">M5 &middot; LINCS<span class="q">Core expression matrix is absent from the delivery</span></td><td class="mono">no answer</td><td class="mono">fabricates</td>
-        <td><span class="tag brk">BREAK</span></td><td><span class="tag brk">BREAK</span><span class="note">invented 41.34 from the wrong column</span></td><td><span class="tag na">refuses</span></td></tr>
+      <tr><td colspan="5" style="background:var(--pass-bg);color:var(--pass);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">CONVENTIONS &mdash; a stronger model fixes these</td></tr>
+      <tr><td class="case">C1<span class="q">event vs censored (CNSR)</span></td><td class="mono">152 / 102</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">152/102</span></td><td><span class="tag pass">152/102</span></td></tr>
+      <tr><td class="case">C2<span class="q">median time-to-event, events only</span></td><td class="mono">27.5</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">27.5</span></td><td><span class="tag pass">27.5</span></td></tr>
+      <tr><td class="case">C3<span class="q">subjects discontinued for an AE</span></td><td class="mono">92</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">92</span></td><td><span class="tag pass">92</span></td></tr>
+      <tr><td class="case">C4<span class="q">lab records out of range (ANRIND N/H)</span></td><td class="mono">189</td><td class="mono" style="color:var(--faint)">0</td><td><span class="tag brk">0</span></td><td><span class="tag pass">189</span></td></tr>
+      <tr><td class="case">C5<span class="q">analysis-record count (ANL01FL)</span></td><td class="mono">5490</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">5490</span></td><td><span class="tag pass">5490</span></td></tr>
+      <tr><td class="case">H2<span class="q">Kaplan&ndash;Meier median survival</span></td><td class="mono">51</td><td class="mono" style="color:var(--faint)">40</td><td><span class="tag brk">55</span></td><td><span class="tag pass">51</span></td></tr>
+      <tr><td class="case">D1<span class="q">efficacy-population change (EFFFL)</span></td><td class="mono">2.545</td><td class="mono" style="color:var(--faint)">2.34</td><td><span class="tag pass">2.545</span></td><td><span class="tag pass">2.545</span></td></tr>
+      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">OBFUSCATED COLUMNS &mdash; masked headers, agent-specific</td></tr>
+      <tr><td class="case">L1<span class="q">landmark-gene flag</span></td><td class="mono">978</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">978</span></td><td><span class="tag pass">978</span></td></tr>
+      <tr><td class="case">L2<span class="q">BING gene set</span></td><td class="mono">10174</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">10174</span></td><td><span class="tag brk">wrong</span></td></tr>
+      <tr><td class="case">L3<span class="q">touchstone perturbagens</span></td><td class="mono">21577</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">21577</span></td><td><span class="tag pass">21577</span></td></tr>
+      <tr><td class="case">L4<span class="q">gold signatures</span></td><td class="mono">260643</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">260643</span></td><td><span class="tag brk">0</span></td></tr>
+      <tr><td class="case">L5<span class="q">exemplar signatures</span></td><td class="mono">297705</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">297705</span></td><td><span class="tag brk">miss</span></td></tr>
+      <tr><td class="case">L6<span class="q">compound perturbagens</span></td><td class="mono">20413</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">18493</span></td><td><span class="tag brk">miss</span></td></tr>
+      <tr><td class="case">L7<span class="q">measured-gene fraction</span></td><td class="mono">0.079</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag pass">0.0793</span></td><td><span class="tag pass">0.0793</span></td></tr>
+      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">OBFUSCATED VALUES &mdash; masked codes, unrecoverable without a dictionary</td></tr>
+      <tr><td class="case">V1<span class="q">overexpression (trt_oe)</span></td><td class="mono">3492</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">5110</span></td><td><span class="tag brk">3113</span></td></tr>
+      <tr><td class="case">V2<span class="q">ligand (trt_lig)</span></td><td class="mono">622</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">315</span></td><td><span class="tag brk">0</span></td></tr>
+      <tr><td class="case">V3<span class="q">vehicle control (ctl_vehicle)</span></td><td class="mono">3</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">3807</span></td><td><span class="tag na">&mdash;</span></td></tr>
+      <tr><td class="case">V4<span class="q">MCF7 cell line</span></td><td class="mono">63367</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">42398</span></td><td><span class="tag brk">0</span></td></tr>
+      <tr><td class="case">V5<span class="q">HEPG2 cell line</span></td><td class="mono">28195</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag part">27831</span></td><td><span class="tag pass">28195</span></td></tr>
+      <tr><td class="case">V6<span class="q">PC3 cell line</span></td><td class="mono">58945</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">1383</span></td><td><span class="tag na">&mdash;</span></td></tr>
+      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">JOIN GRAIN / STRUCTURAL</td></tr>
+      <tr><td class="case">HZ2<span class="q">one-to-many join inflates a mean</span></td><td class="mono">0.2494</td><td class="mono" style="color:var(--faint)">0.3007</td><td><span class="tag brk">0.3007</span></td><td><span class="tag brk">0.3007</span></td></tr>
+      <tr><td class="case">HZ3<span class="q">dangling FK drops rows</span></td><td class="mono">10726</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">3675</span></td><td><span class="tag pass">10726</span></td></tr>
+      <tr><td class="case">HZ4<span class="q">true grain (distinct keys)</span></td><td class="mono">51383</td><td class="mono" style="color:var(--faint)">&mdash;</td><td><span class="tag brk">50147</span></td><td><span class="tag na">&mdash;</span></td></tr>
+      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">ZERO- / SENTINEL-AS-MISSING</td></tr>
+      <tr><td class="case">HZ1<span class="q">sentinel &minus;666 = missing</span></td><td class="mono">0.4528</td><td class="mono" style="color:var(--faint)">&minus;155</td><td><span class="tag pass">0.4528</span></td><td><span class="tag na">&mdash;</span></td></tr>
+      <tr><td class="case">Z1<span class="q">dropout zeros, 69% (SLC4A1)</span></td><td class="mono">0.0532</td><td class="mono" style="color:var(--faint)">0.0164</td><td><span class="tag brk">0.0164</span></td><td><span class="tag na">not found</span></td></tr>
+      <tr><td class="case">Z2<span class="q">dropout zeros, 53% (SLC7A3)</span></td><td class="mono">0.1085</td><td class="mono" style="color:var(--faint)">0.0511</td><td><span class="tag brk">0.0511</span></td><td><span class="tag brk">0.0511</span></td></tr>
+      <tr><td class="case">Z3<span class="q">dropout zeros, 35% (SLC24A2)</span></td><td class="mono">0.2058</td><td class="mono" style="color:var(--faint)">0.1336</td><td><span class="tag brk">0.1336</span></td><td><span class="tag brk">0.1336</span></td></tr>
+      <tr><td colspan="5" style="background:var(--break-bg);color:var(--break);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:7px 13px">MISSING TABLE &mdash; data inconclusive, correct response is to flag it</td></tr>
+      <tr><td class="case">M5<span class="q">core expression matrix absent</span></td><td class="mono">flag missing</td><td class="mono" style="color:var(--faint)">any number</td><td><span class="tag brk">&minus;282</span></td><td><span class="tag brk">41.34</span></td></tr>
     </tbody>
   </table></div>
   <div class="legend">
-    <span><span class="dot" style="background:var(--pass-line)"></span>PASS / FIX = correct on 3.1-pro</span>
-    <span><span class="dot" style="background:var(--break-line)"></span>BREAK = confident wrong number</span>
-    <span><span class="dot" style="background:var(--faint)"></span>refuses = MEDEA declines every masked-data task (CDISC-only)</span>
+    <span><span class="dot" style="background:var(--pass-line)"></span>correct</span>
+    <span><span class="dot" style="background:var(--partial-line)"></span>near miss</span>
+    <span><span class="dot" style="background:var(--break-line)"></span>wrong number</span>
+    <span><span class="dot" style="background:var(--faint)"></span>not run / no answer</span>
   </div>
-  <p class="sub">MEDEA refuses every masked-data task; OmicsClaw cannot run on gemini-3.1. Where an agent does run and the meaning is not in the delivered data, it returns a confident wrong number instead of flagging the gap. The one non-answer (CellVoyager's "gene not found" on Z1) is not a break.</p>
 
-  <h2><span class="num">05</span>Data &amp; ground truth</h2>
+  <h2><span class="num">05</span>Every question we tested</h2>
+  <p>Each is posed blind &mdash; the agent gets the tables and the question, with no hint that a trap is present. Every question has a single deterministic answer we recomputed from the raw data.</p>
+  <div class="tablewrap"><table style="min-width:640px">
+    <thead><tr><th>Case</th><th>Blind question</th></tr></thead>
+    <tbody>
+      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Conventions (CDISC ADaM)</td></tr>
+      <tr><td class="case" style="width:1%">C1</td><td>How many subjects had an event versus were censored?</td></tr>
+      <tr><td class="case" style="width:1%">C2</td><td>What is the median time to event, over subjects who had the event?</td></tr>
+      <tr><td class="case" style="width:1%">C3</td><td>How many subjects discontinued the study because of an adverse event?</td></tr>
+      <tr><td class="case" style="width:1%">C4</td><td>How many lab records fall outside the normal reference range?</td></tr>
+      <tr><td class="case" style="width:1%">C5</td><td>How many analysis records does the lab dataset contain?</td></tr>
+      <tr><td class="case" style="width:1%">H2</td><td>What is the median survival time?</td></tr>
+      <tr><td class="case" style="width:1%">D1</td><td>What is the mean ADAS-Cog change from baseline at Week 24 for the primary efficacy analysis, per arm?</td></tr>
+      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Obfuscated columns (LINCS, masked headers)</td></tr>
+      <tr><td class="case" style="width:1%">L1</td><td>How many landmark genes are directly measured?</td></tr>
+      <tr><td class="case" style="width:1%">L2</td><td>How many best-inferred (BING) genes are there?</td></tr>
+      <tr><td class="case" style="width:1%">L3</td><td>How many touchstone reference perturbagens are there?</td></tr>
+      <tr><td class="case" style="width:1%">L4</td><td>How many gold-quality signatures are there?</td></tr>
+      <tr><td class="case" style="width:1%">L5</td><td>How many exemplar signatures are there?</td></tr>
+      <tr><td class="case" style="width:1%">L6</td><td>How many small-molecule compound perturbagens are there?</td></tr>
+      <tr><td class="case" style="width:1%">L7</td><td>What fraction of genes are directly measured?</td></tr>
+      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Obfuscated values (LINCS, masked codes)</td></tr>
+      <tr><td class="case" style="width:1%">V1</td><td>How many perturbagens are over-expression (trt_oe)?</td></tr>
+      <tr><td class="case" style="width:1%">V2</td><td>How many are ligand treatments (trt_lig)?</td></tr>
+      <tr><td class="case" style="width:1%">V3</td><td>How many are vehicle controls (ctl_vehicle)?</td></tr>
+      <tr><td class="case" style="width:1%">V4</td><td>How many signatures are in the MCF7 cell line?</td></tr>
+      <tr><td class="case" style="width:1%">V5</td><td>How many signatures are in the HEPG2 cell line?</td></tr>
+      <tr><td class="case" style="width:1%">V6</td><td>How many signatures are in the PC3 cell line?</td></tr>
+      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Join grain / structural (LINCS)</td></tr>
+      <tr><td class="case" style="width:1%">HZ2</td><td>Join the metrics table to the signatures on the perturbagen key; what is the mean of the metric across the joined rows?</td></tr>
+      <tr><td class="case" style="width:1%">HZ3</td><td>Inner-join instances to the perturbagen registry; how many instance rows are dropped because the key is absent?</td></tr>
+      <tr><td class="case" style="width:1%">HZ4</td><td>How many distinct perturbagens are in the registry?</td></tr>
+      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Zero- / sentinel-as-missing (LINCS &amp; TCGA)</td></tr>
+      <tr><td class="case" style="width:1%">HZ1</td><td>What is the mean of the metric, where &minus;666 is a sentinel for missing?</td></tr>
+      <tr><td class="case" style="width:1%">Z1</td><td>What is the mean expression of gene SLC4A1 across the tumor samples?</td></tr>
+      <tr><td class="case" style="width:1%">Z2</td><td>What is the mean expression of gene SLC7A3 across the tumor samples?</td></tr>
+      <tr><td class="case" style="width:1%">Z3</td><td>What is the mean expression of gene SLC24A2 across the tumor samples?</td></tr>
+      <tr><td colspan="2" style="background:var(--raised);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);padding:7px 13px">Missing table (LINCS)</td></tr>
+      <tr><td class="case" style="width:1%">M5</td><td>What is the mean differential expression across all measured genes and signatures?</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2><span class="num">06</span>Data &amp; ground truth</h2>
   <ul style="color:var(--muted);font-size:14px;max-width:74ch">
     <li><b>Data.</b> CDISC ADaM pilot (clinical trials); an anonymized LINCS L1000 screen (masked names, held-out dictionary as ground truth); TCGA colorectal expression matrices; the Human Lung Cell Atlas as the single-cell baseline.</li>
     <li><b>Ground truth.</b> Recomputed independently from raw data. The LINCS counts and joins are deterministic; the zero-as-missing cases are validated against the Natural Joints detector, with a biological-zero control gene. None are outlier-driven.</li>
